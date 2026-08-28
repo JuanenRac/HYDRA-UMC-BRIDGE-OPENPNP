@@ -43,3 +43,10 @@ installed OpenPnP version and machine profile.
 
 Version `0.0.1` has a tested local PCB hand-off core. It does not claim a
 connection to an OpenPnP machine until that integration is tested.
+
+## ⚙️ Versioned Build
+
+`build-test.bat` / `build-test.sh` validate without modifying the repository.
+`build.bat` / `build.sh` run that validation first and, only on success,
+synchronize the native package version, manifest and `CHANGELOG.md`. There is
+no live machine `run` command until an OpenPnP integration is validated.
