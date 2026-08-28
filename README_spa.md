@@ -40,3 +40,10 @@ extensión concreta de OpenPnP se elegirá tras probar versión y perfil reales.
 
 La versión `0.0.1` tiene un núcleo local probado de entrega de PCB. No afirma
 una conexión a máquina OpenPnP hasta probar esa integración.
+
+## ⚙️ Compilación con versión
+
+`build-test.bat` / `build-test.sh` validan sin modificar el repositorio.
+`build.bat` / `build.sh` ejecutan primero esa validación y, solo si es
+correcta, sincronizan la versión nativa, el manifiesto y `CHANGELOG.md`. No
+existe un comando `run` de máquina hasta validar la integración con OpenPnP.

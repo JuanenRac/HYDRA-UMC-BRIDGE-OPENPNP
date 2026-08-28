@@ -40,3 +40,10 @@ saranno scelte dopo prova di versione e profilo reali.
 
 La versione `0.0.1` ha un nucleo locale testato di passaggio PCB. Non dichiara
 connessione a una macchina OpenPnP prima della prova dell'integrazione.
+
+## ⚙️ Build con versione
+
+`build-test.bat` / `build-test.sh` convalidano senza modificare il repository.
+`build.bat` / `build.sh` eseguono prima tale convalida e, solo se riesce,
+sincronizzano versione nativa, manifesto e `CHANGELOG.md`. Non esiste un
+comando `run` di macchina prima di una convalida con OpenPnP.

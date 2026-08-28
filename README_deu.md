@@ -40,3 +40,10 @@ erst nach Test der realen Version und des Maschinenprofils.
 
 Version `0.0.1` hat einen getesteten lokalen PCB-Übergabekern. Eine Verbindung
 zu einer OpenPnP-Maschine wird erst nach einem realen Integrationstest behauptet.
+
+## ⚙️ Versionierter Build
+
+`build-test.bat` / `build-test.sh` validieren ohne das Repository zu ändern.
+`build.bat` / `build.sh` führen zuerst diese Validierung aus und
+synchronisieren nur bei Erfolg native Version, Manifest und `CHANGELOG.md`.
+Vor einer validierten OpenPnP-Integration gibt es keinen Maschinen-`run`-Befehl.

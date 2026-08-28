@@ -39,3 +39,10 @@ Windows では `build-test.bat`、Linux では `bash build-test.sh` を実行し
 
 バージョン `0.0.1` はテスト済みのローカル PCB 受け渡しコアです。実際の統合
 試験前に OpenPnP 機への接続を主張しません。
+
+## ⚙️ バージョン付きビルド
+
+`build-test.bat` / `build-test.sh` はリポジトリを変更せず検証します。
+`build.bat` / `build.sh` は最初にその検証を実行し、成功した場合のみネイティブ
+パッケージ版、マニフェスト、`CHANGELOG.md` を同期します。OpenPnP 統合の検証前に
+マシン `run` コマンドはありません。

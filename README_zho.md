@@ -38,3 +38,9 @@ HYDRA-UMC 单元为 `READY` 时才计划生产性交接；`ABORT` 可以请求�
 
 版本 `0.0.1` 具有经过测试的本地 PCB 交接核心。在真实集成测试前不宣称连接
 任何 OpenPnP 机器。
+
+## ⚙️ 版本化构建
+
+`build-test.bat` / `build-test.sh` 只验证，不修改仓库。`build.bat` /
+`build.sh` 先运行该验证，只有成功后才同步原生包版本、清单和 `CHANGELOG.md`。
+在 OpenPnP 集成验证前，不提供机器 `run` 命令。

@@ -40,3 +40,10 @@ L'API ou extension OpenPnP concrète sera choisie après essai réel.
 
 La version `0.0.1` possède un noyau local de transfert PCB testé. Elle n'affirme
 aucune connexion à une machine OpenPnP avant essai de cette intégration.
+
+## ⚙️ Compilation versionnée
+
+`build-test.bat` / `build-test.sh` valident sans modifier le dépôt.
+`build.bat` / `build.sh` exécutent d'abord cette validation puis, uniquement
+en cas de succès, synchronisent version native, manifeste et `CHANGELOG.md`.
+Il n'existe pas de commande `run` machine avant validation avec OpenPnP.
