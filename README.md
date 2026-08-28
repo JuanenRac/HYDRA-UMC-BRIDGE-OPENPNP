@@ -6,6 +6,8 @@ GPL-3.0-or-later - see LICENSE
 
 # HYDRA-UMC-BRIDGE-OPENPNP
 
+🇺🇸 **English** | [🇪🇸 Español](README_spa.md) | [🇫🇷 Français](README_fra.md) | [🇮🇹 Italiano](README_ita.md) | [🇩🇪 Deutsch](README_deu.md) | [🇨🇳 简体中文](README_zho.md) | [🇯🇵 日本語](README_jpn.md)
+
 High-level board-flow bridge between HYDRA-UMC and OpenPnP. It coordinates
 PCB preparation, robot loading, native placement, robot unloading and
 traceable completion. It does not implement placement kinematics, feeder
