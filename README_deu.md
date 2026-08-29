@@ -35,6 +35,7 @@ Sie gehört zur Familie **External Automation Bridges**: einer Gruppe von Schwes
 * ✅ **Nicht-mutierender Build/Test:** `build-test.bat`/`.sh` kompilieren den Quellcode und führen die Test-Suite für Board-Rückverfolgbarkeit und Ausfallsicherheit aus, ohne Versionsdateien oder das CHANGELOG anzufassen. *(implementiert, siehe BUILD & AUSFÜHRUNG unten)*
 * ✅ **Schreibgeschützte OpenPnP-Profilprüfung:** `inspect_openpnp_config.py` analysiert eine gespeicherte `machine.xml`, während `openpnp-scripts/HYDRA-UMC/inspect_profile.js` eine manuell aufgerufene Vorlage für ein OpenPnP-Menüskript ist; beide melden nur Klasse und Komponentenanzahlen, und die Vorlage zeigt dieses Ergebnis in einem Informationsdialog ohne Maschinenbefehl. *(implementiert, getestet)*
 * ✅ **Nur nachvollziehbare Übergabesimulation:** `BoardIdentity` bindet Kennungen für Platine, Rezept, Revision und Los, bevor `simulate_board_handoff()` das gemeinsame SDK-Gatter anwendet; sie erzeugt nur für einen erlaubten Plan einen deterministischen SHA-256-Fingerabdruck und hat keine OpenPnP-, serielle oder Maschinen-E/A. *(implementiert, getestet)*
+* ✅ **Nur nachvollziehbare produktive Zyklussimulation:** `simulate_board_cycle()` bewertet die geordnete Folge `PREPARE → LOAD → PROCESS → UNLOAD → COMPLETE` unter einem expliziten Zellen-/Maschinenzustand; jeder produktive Schritt schlägt außerhalb von `READY/IDLE` sicher fehl, und `ABORT` bleibt im SDK-Sicherheitspfad getrennt. *(implementiert, getestet)*
 
 ---
 
@@ -106,7 +107,7 @@ bash build.sh
 
 ## ✅ AKTUELLER STATUS UND NÄCHSTE SCHRITTE
 
-**Heute real:** Version `0.0.6`, ein lokal getesteter nachvollziehbarer PCB-Übergabekern (`BoardFlow`), gestützt auf das gemeinsame Auftragsgatter von `HYDRA-UMC-SDK`, eine deterministische `unittest`-Suite mit zehn Tests, ein Prüfer für ein gespeichertes Profil, eine sichtbare schreibgeschützte OpenPnP-Menüvorlage sowie eine identitätsgebundene Simulation ohne Maschinen-E/A.
+**Heute real:** Version `0.0.7`, ein lokal getesteter nachvollziehbarer PCB-Übergabekern (`BoardFlow`), gestützt auf das gemeinsame Auftragsgatter von `HYDRA-UMC-SDK`, eine deterministische `unittest`-Suite mit zwölf Tests, ein Prüfer für ein gespeichertes Profil, eine sichtbare schreibgeschützte OpenPnP-Menüvorlage sowie identitätsgebundene Übergabe-/Zyklus-Simulationen ohne Maschinen-E/A.
 
 **Integrationsgrenze:** OpenPnP behält jederzeit Bestückungskinematik, Feeder-Steuerung und rohe Bewegung; diese Brücke steuert und verfolgt ausschließlich die *Übergabe* darum herum — Roboterbeladung, Abschluss der nativen Bestückung, Roboterentladung.
 

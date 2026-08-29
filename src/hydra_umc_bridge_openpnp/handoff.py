@@ -15,7 +15,7 @@ from dataclasses import dataclass
 from hashlib import sha256
 import re
 
-from hydra_umc_sdk.bridge_contract import BridgeJob, CellState
+from hydra_umc_sdk.bridge_contract import BridgeJob, CellState, JobPhase, MachineState
 
 from .board_flow import BoardFlow
 
@@ -63,6 +63,15 @@ class SimulatedBoardHandoff:
     mode: str = "simulation-only"
 
 
+@dataclass(frozen=True)
+class SimulatedBoardCycle:
+    """Ordered local evidence for an entire productive PCB hand-off cycle."""
+
+    allowed: bool
+    steps: tuple[SimulatedBoardHandoff, ...]
+    mode: str = "simulation-only"
+
+
 def simulate_board_handoff(
     job: BridgeJob,
     cell_state: CellState,
@@ -91,3 +100,38 @@ def simulate_board_handoff(
         decision.reason,
         fingerprint,
     )
+
+
+def simulate_board_cycle(
+    cell_state: CellState,
+    machine_state: MachineState,
+    identity: BoardIdentity,
+) -> SimulatedBoardCycle:
+    """Simulate every productive phase in order without external I/O.
+
+    `ABORT` is intentionally not part of a nominal productive cycle: its
+    separate fail-safe path is already covered by the shared SDK contract.
+    """
+
+    steps = tuple(
+        simulate_board_handoff(
+            BridgeJob(
+                f"simulated-openpnp-{phase.value.lower()}",
+                f"simulated-openpnp-{phase.value.lower()}-v1",
+                "hydra-umc-bridge-openpnp-simulation",
+                phase,
+                machine_state,
+                {"board_id": identity.board_id},
+            ),
+            cell_state,
+            identity,
+        )
+        for phase in (
+            JobPhase.PREPARE,
+            JobPhase.LOAD,
+            JobPhase.PROCESS,
+            JobPhase.UNLOAD,
+            JobPhase.COMPLETE,
+        )
+    )
+    return SimulatedBoardCycle(all(step.allowed for step in steps), steps)
