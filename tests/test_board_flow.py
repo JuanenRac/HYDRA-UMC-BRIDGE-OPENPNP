@@ -53,6 +53,31 @@ class BoardFlowTests(unittest.TestCase):
         profile = inspect_machine_configuration("not-a-real-machine.xml")
         self.assertFalse(profile.available)
 
+    def test_openpnp_menu_script_remains_read_only(self):
+        script_path = (
+            Path(__file__).resolve().parent.parent
+            / "openpnp-scripts"
+            / "HYDRA-UMC"
+            / "inspect_profile.js"
+        )
+        script = script_path.read_text(encoding="utf-8")
+        for required_call in (
+            "machine.getHeads()",
+            "machine.getCameras()",
+            "machine.getDrivers()",
+            "machine.getFeeders()",
+        ):
+            self.assertIn(required_call, script)
+        for forbidden_call in (
+            ".enable(",
+            ".home(",
+            ".moveTo(",
+            ".actuate(",
+            ".feed(",
+            "config.scriptState",
+        ):
+            self.assertNotIn(forbidden_call, script)
+
 
 if __name__ == "__main__":
     unittest.main()

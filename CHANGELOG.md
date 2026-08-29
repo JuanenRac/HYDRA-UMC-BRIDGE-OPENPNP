@@ -6,6 +6,19 @@ GPL-3.0-or-later - see LICENSE
 
 # Changelog
 
+## [0.0.4] - 2026-08-30
+
+- Added `openpnp-scripts/HYDRA-UMC/inspect_profile.js`, a manually invoked
+  OpenPnP menu-script template which only reads the machine class and counts
+  heads, cameras, drivers and feeders. It contains no motion, homing, feeder,
+  actuator, enablement or configuration-write call.
+- Added a regression test that rejects a future change which would introduce a
+  machine-control call into that menu script.
+- Synchronized the English README and all six translated README files with the
+  seven-test coverage and explicit manual/read-only integration boundary.
+- Successful incremental build: synchronized package metadata and
+  `hydra-umc.project.json`.
+
 ## [0.0.3] - 2026-08-30
 
 - Added a read-only inspector for a saved OpenPnP `machine.xml` profile. It
