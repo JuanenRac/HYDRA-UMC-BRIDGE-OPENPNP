@@ -35,6 +35,7 @@ class BoardFlowTests(unittest.TestCase):
         unknown_phase_job = BridgeJob("pcb-job-2", "pcb-key-2", "openpnp", "SOME_FUTURE_PHASE", MachineState.IDLE, {"board_id": "pcb-42"})
         decision = BoardFlow().plan(unknown_phase_job, CellState.READY, "pcb-42")
         self.assertEqual(decision.handoff, "unrecognized-phase")
+        self.assertFalse(decision.allowed)
 
 
 if __name__ == "__main__":
