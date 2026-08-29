@@ -1,46 +1,159 @@
 <!-- =============================================================================
-HYDRA-UMC-BRIDGE-OPENPNP - OpenPnP PCB 流程桥
+HYDRA-UMC-BRIDGE-OPENPNP - OpenPnP 板级流程桥接
 Copyright (C) 2026 JuanenRac (Electro Hobby 3D) <electrohobby3d@gmail.com>
 GPL-3.0-or-later - see LICENSE
 ============================================================================= -->
 
-# HYDRA-UMC-BRIDGE-OPENPNP
+<p align="center">
+  <img src="images/HYDRA_UMC_BANNER.svg" alt="HYDRA-UMC-BRIDGE-OPENPNP 横幅" width="100%">
+</p>
 
-[🇺🇸 English](README.md) | [🇪🇸 Español](README_spa.md) | [🇫🇷 Français](README_fra.md) | [🇮🇹 Italiano](README_ita.md) | [🇩🇪 Deutsch](README_deu.md) | 🇨🇳 **简体中文** | [🇯🇵 日本語](README_jpn.md)
+# 🎯 HYDRA-UMC-BRIDGE-OPENPNP
 
-HYDRA-UMC 与 OpenPnP 之间的高层 PCB 流程桥。它协调 PCB 准备、机器人装载、
-原生贴装、机器人卸载和可追溯完成。它不实现贴装运动学、供料器或原始运动。
+<p align="center"><a href="README.md">🇺🇸 English</a> | <a href="README_spa.md">🇪🇸 Español</a> | <a href="README_fra.md">🇫🇷 Français</a> | <a href="README_ita.md">🇮🇹 Italiano</a> | <a href="README_deu.md">🇩🇪 Deutsch</a> | 🇨🇳 <b>简体中文</b> | <a href="README_jpn.md">🇯🇵 日本語</a></p>
 
-## 架构
+### 📋 面向 OpenPnP 的可追溯板级流程协调桥接
 
-```text
-OpenPnP 任务 <-> BRIDGE-OPENPNP <-> HYDRA-UMC-SDK <-> SERVER <-> 单元安全
+<p align="left">
+  <img src="https://img.shields.io/badge/许可证-GPL%203.0-blue.svg" alt="GPL 3.0">
+  <img src="https://img.shields.io/badge/Python-3.11%2B-3776AB.svg" alt="Python 3.11+">
+  <img src="https://img.shields.io/badge/Safety-Fails%20Closed-red.svg" alt="故障安全">
+</p>
+
+---
+
+## 1. 🛠️ 技术概览
+
+**HYDRA-UMC-BRIDGE-OPENPNP** 是 HYDRA-UMC 与 OpenPnP 之间的高层板级流程桥接。它协调 PCB 准备、机器人上料、原生贴装、机器人下料以及可追溯的完成流程。它不实现贴装运动学、送料器控制或原始运动——这些完全留在 OpenPnP 内部。
+
+它属于 **External Automation Bridges** 家族:一组共享 `HYDRA-UMC-SDK` 相同安全契约的兄弟仓库(CNC、LASER、OPENPNP、PRINTER3D、ROS2),因此任何一个桥接都不能自行发明"可以安全工作"的定义。
+
+### 核心特性:
+* ✅ **真实的可追溯板级流程核心:** `board_flow.py` 中的 `BoardFlow.plan()` 会在*甚至还未评估*安全门控之前,就拒绝任何 `board_id` 为空或前后带有空白字符的任务——每次交接都必须携带一个稳定、干净的标识符。*(已实现,并在 `tests/test_board_flow.py` 中测试)*
+* ✅ **真实的按阶段交接映射:** 一个固定字典将每个 `JobPhase`(`PREPARE`、`LOAD`、`PROCESS`、`UNLOAD`、`COMPLETE`、`ABORT`)映射为一条明确、可读的交接描述——`verify-board-and-fixture`、`robot-loads-board-into-pnp-fixture`、`openpnp-places-declared-job` 等。*(已实现)*
+* ✅ **真实的共享安全门控:** 每个有效任务都会通过 `HYDRA-UMC-SDK` 的 `bridge_contract` 中的 `evaluate_job()` 进行评估,这与所有兄弟桥接以及 HYDRA-UMC-SERVER 使用的是同一个门控;只有当外部机器上报 `IDLE` 且 HYDRA-UMC 单元为 `READY` 时,生产性交接才会继续。*(已实现)*
+* ✅ **非变更式构建/测试:** `build-test.bat`/`.sh` 编译源码并运行板级可追溯性与故障安全测试套件,不会触碰版本文件或 CHANGELOG。*(已实现,见下方"构建与运行")*
+* 🔜 **具体的 OpenPnP 扩展/API** —— 只有在测试过已安装的 OpenPnP 版本和机器配置文件之后才会选定。*(计划中)*
+
+---
+
+## 2. 🔄 板级流程协调流程
+
+```mermaid
+flowchart LR
+    JOB["OpenPnP 任务<br/>(board_id, 阶段)"] --> BRIDGE["BRIDGE-OPENPNP<br/>BoardFlow.plan()"]
+    BRIDGE -- BridgeJob --> SDK["HYDRA-UMC-SDK<br/>evaluate_job()"]
+    SDK -- GateDecision --> SERVER["HYDRA-UMC-SERVER"]
+    SERVER -- "交接 / 中止" --> CELL["单元安全"]
 ```
 
-每次交接需要稳定 `board_id`、任务标识和幂等键。只有外部机器为 `IDLE` 且
-HYDRA-UMC 单元为 `READY` 时才计划生产性交接；`ABORT` 可以请求受控停止。
+---
 
-## 构建和测试
+## 3. 🧱 架构与设计决策
 
-在 Windows 运行 `build-test.bat`，Linux 运行 `bash build-test.sh`。它不改变
-版本或 CHANGELOG，并测试追溯性与失效安全行为。OpenPnP API 或扩展将在真实
-版本和机器配置验证后选择。
+* **为什么 `board_id` 校验会在 `plan()` 中最先发生。** `BoardFlow.plan()` 的第一项检查就是 `not board_id or board_id.strip() != board_id`——格式错误或含糊的板 ID 会立即被拒绝并给出明确原因,而不是被转发到下游、变得更难追溯。
+* **为什么交接是一个按 `JobPhase` 索引的固定字典,而不是字符串格式化。** `BoardFlow._handoffs` 将六个阶段中的每一个都映射为一条字面且无歧义的描述。拼写错误或缺失的阶段会立刻报错(`KeyError`),而不是悄悄产生一条格式错误的日志条目——可追溯性依赖于每个阶段都恰好有一个名称。
+* **为什么桥接只有在外部机器 `IDLE` 且单元 `READY` 时才会规划生产性传输。** 板级交接是一个双方参与的物理操作;只要任一方不处于已知的安全状态,规划传输就等于要求机器人移向一台不可预测的机器。
+* **为什么在故障期间仍可请求 `ABORT`。** `JobPhase.ABORT` 映射为 `request-controlled-stop`,共享的 `evaluate_job()` 门控不会像阻止生产性阶段那样阻止它——操作员或监督者必须始终能够请求受控停止,即使正处于故障中。
+* **为什么具体的 OpenPnP 扩展/API 被推迟。** 在针对实际安装的 OpenPnP 版本和机器配置文件进行测试之前,就绑定某个特定插件接口或 REST 接口,会有引入这个本地核心无法验证的假设的风险。
+* **它如何融入整个生态系统。** BRIDGE-OPENPNP 位于一个 OpenPnP 任务与 `HYDRA-UMC-SDK` → `HYDRA-UMC-SERVER` → 单元安全之间:它协调板级交接的机器人一侧,绝不会声称拥有本属于 OpenPnP 自身的贴装运动学或送料器控制能力。
 
-## 相关项目
+---
 
-| 项目 | 角色 |
-| --- | --- |
-| [HYDRA-UMC-SDK](https://github.com/JuanenRac/HYDRA-UMC-SDK) | 共享任务与安全门控。 |
-| [HYDRA-UMC-SERVER](https://github.com/JuanenRac/HYDRA-UMC-SERVER) | 授权编排边界。 |
-| [HYDRA-UMC-SAFETY-ZONES](https://github.com/JuanenRac/HYDRA-UMC-SAFETY-ZONES) | 未来单元区域证据。 |
+## 📂 目录结构
 
-## 状态
+```text
+HYDRA-UMC-BRIDGE-OPENPNP/
+├── src/
+│   └── hydra_umc_bridge_openpnp/
+│       ├── __init__.py
+│       └── board_flow.py        # BoardFlow: board_id 校验 + 按阶段交接门控
+├── tests/
+│   └── test_board_flow.py       # 板级可追溯性与故障安全测试
+├── tools/
+│   ├── build_test.py            # 非变更式编译 + 测试运行器 (build-test.bat/.sh)
+│   └── bump_version.py          # 同步 pyproject.toml、清单和 CHANGELOG.md
+├── build-test.bat / build-test.sh  # 仅验证,绝不修改仓库
+├── build.bat / build.sh            # 先验证,成功后才更新版本 + CHANGELOG
+├── pyproject.toml               # 包元数据;依赖 HYDRA-UMC-SDK (git)
+├── hydra-umc.project.json       # 生态系统清单(版本、成熟度、家族)
+├── CHANGELOG.md
+├── CODE_OF_CONDUCT.md / CONTRIBUTING.md / SECURITY.md / SUPPORT.md
+├── LICENSE / LICENSE.md
+└── README.md / README_*.md      # 本文件及其 6 种译文
+```
 
-版本 `0.0.1` 具有经过测试的本地 PCB 交接核心。在真实集成测试前不宣称连接
-任何 OpenPnP 机器。
+---
 
-## ⚙️ 版本化构建
+## 4. ⚙️ 构建与运行
 
-`build-test.bat` / `build-test.sh` 只验证，不修改仓库。`build.bat` /
-`build.sh` 先运行该验证，只有成功后才同步原生包版本、清单和 `CHANGELOG.md`。
-在 OpenPnP 集成验证前，不提供机器 `run` 命令。
+需要 Python 3.11+。`tools/build_test.py` 期望 `HYDRA-UMC-SDK` 作为兄弟目录被检出(`../HYDRA-UMC-SDK`),或通过环境变量 `HYDRA_UMC_SDK_ROOT` 指定。
+
+```bash
+# Windows
+build-test.bat      # 仅验证 —— 不改变版本/CHANGELOG
+build.bat            # 先验证,成功后更新版本 + CHANGELOG
+
+# Linux/macOS
+bash build-test.sh
+bash build.sh
+```
+
+`build-test` 使用 `py_compile` 编译 `src/` 下的每个模块,并运行完整的 `unittest` 套件(`tests/test_board_flow.py`),证明板级可追溯性拒绝逻辑和故障安全门控均按预期工作 —— 它绝不会修改仓库。`build` 会先运行同样的验证,只有成功后才调用 `tools/bump_version.py`,在 `pyproject.toml`、`hydra-umc.project.json` 和 `CHANGELOG.md` 之间同步版本号。目前尚无真正的机器 `run` 命令 —— 这需要经过验证的 OpenPnP 集成。
+
+---
+
+## ✅ 当前状态与后续步骤
+
+**目前真实的部分:** 版本 `0.0.1`,一个已在本地测试过的可追溯 PCB 交接核心(`BoardFlow`),依托 `HYDRA-UMC-SDK` 的共享任务门控,配有确定性的 `unittest` 套件,以及已接入 CI 并带 SDK 检出的非变更式 build-test 脚本。
+
+**集成边界:** OpenPnP 始终保留贴装运动学、送料器控制和原始运动;本桥接只负责门控和追踪其周围的*交接*环节——机器人上料、原生贴装的完成、机器人下料。
+
+**仍待完成:** 目前并未声称与真实 OpenPnP 机器建立了连接——具体的 OpenPnP 扩展/API 只会在针对已安装的 OpenPnP 版本和机器配置文件测试之后才会选定。
+
+---
+
+## 🔗 相关项目
+
+本项目是同一作者(JuanenRac / Electro Hobby 3D)更大的机器人生态系统的一部分,涵盖固件、控制软件、AI 节点和车队工具。了解这一点很有必要,因为某个请求实际上可能与这些项目之一有关,而不是与本仓库有关。
+
+### 直接相关
+
+- **[HYDRA-UMC-SDK](https://github.com/JuanenRac/HYDRA-UMC-SDK)** —— 共享的任务与安全门控,本桥接(以及所有其他桥接)都通过它评估任务。
+- **[HYDRA-UMC-SERVER](https://github.com/JuanenRac/HYDRA-UMC-SERVER)** —— 本桥接汇报的经过授权的编排边界。
+- **[HYDRA-UMC-SAFETY-ZONES](https://github.com/JuanenRac/HYDRA-UMC-SAFETY-ZONES)** —— 未来的单元区域证据。
+
+### 生态系统的其余部分
+
+**HYDRA-UMC 平台** —— 本桥接为其协调辅助功能的多机器人微工厂
+- **[HYDRA-UMC](https://github.com/JuanenRac/HYDRA-UMC)** —— 协调多达 8 条机械臂的 CM5 + STM32H745 主板。
+- **[HYDRA-UMC-SERVER](https://github.com/JuanenRac/HYDRA-UMC-SERVER)** —— 每个控制客户端和桥接都会对接的 Express/WebSocket 后端。
+- **[HYDRA-UMC-STUDIO](https://github.com/JuanenRac/HYDRA-UMC-STUDIO)** —— 基于网页的控制仪表盘,多机器人 3D 可视化。
+
+**External Automation Bridges** —— 共享同一个 `HYDRA-UMC-SDK` 任务门控的兄弟仓库
+- **[HYDRA-UMC-BRIDGE-CNC](https://github.com/JuanenRac/HYDRA-UMC-BRIDGE-CNC)** —— CNC 单元协调桥接。
+- **[HYDRA-UMC-BRIDGE-LASER](https://github.com/JuanenRac/HYDRA-UMC-BRIDGE-LASER)** —— 激光单元协调桥接。
+- **[HYDRA-UMC-BRIDGE-PRINTER3D](https://github.com/JuanenRac/HYDRA-UMC-BRIDGE-PRINTER3D)** —— 面向开源 3D 打印软件的协调桥接。
+- **[HYDRA-UMC-BRIDGE-ROS2](https://github.com/JuanenRac/HYDRA-UMC-BRIDGE-ROS2)** —— 与 ROS 2 之间的双向协调边界。
+
+**安全与集成证据**
+- **[HYDRA-UMC-SAFETY-ZONES](https://github.com/JuanenRac/HYDRA-UMC-SAFETY-ZONES)** —— 整个桥接家族共用的单元区域安全证据。
+- **[HYDRA-UMC-HIL-BRIDGE](https://github.com/JuanenRac/HYDRA-UMC-HIL-BRIDGE)** —— 硬件在环测试证据。
+
+## 👤 作者
+**JuanenRac** (Electro Hobby 3D)
+📧 electrohobby3d@gmail.com
+
+## 📜 许可证
+GPL-3.0 - 详见 LICENSE。
+
+## 🛠️ 构建与运行
+
+在发布构建之前,使用不带版本递增的构建检查:
+
+| 操作 | Windows | Linux / macOS |
+|---|---|---|
+| 构建检查(不改变版本或 CHANGELOG) | `build-test.bat` | `./build-test.sh` |
+| 运行 / 开发(如提供) | `run*.bat` 或 `dev*.bat` | `./run*.sh` 或 `./dev*.sh` |
+
+`build-test.bat` 和 `build-test.sh` 会编译或验证项目技术栈,但不会递增 `hydra-umc.project.json` 或修改 `CHANGELOG.md`。它们只能产生正常的编译器输出。现有的 `build*.bat`、`build*.sh`、`run*` 和 `dev*` 脚本保留各自项目特定的、带版本管理或运行时行为;在需要这些行为时使用它们。
