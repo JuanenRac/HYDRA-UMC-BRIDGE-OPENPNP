@@ -36,6 +36,7 @@ It belongs to the **External Automation Bridges** family: a set of sibling repos
 * ✅ **Read-only OpenPnP profile inspection:** `inspect_openpnp_config.py` parses a saved `machine.xml`, while `openpnp-scripts/HYDRA-UMC/inspect_profile.js` is a manually invoked OpenPnP menu-script template; both report only class and component counts, and the template presents that result in an informational dialog without sending a machine command. *(implemented, tested)*
 * ✅ **Trace-only hand-off simulation:** `BoardIdentity` binds board, recipe, revision and lot identifiers before `simulate_board_handoff()` applies the shared SDK gate; it emits a deterministic SHA-256 trace fingerprint only for an allowed plan and has no OpenPnP, serial or machine I/O. *(implemented, tested)*
 * ✅ **Trace-only productive-cycle simulation:** `simulate_board_cycle()` evaluates the ordered `PREPARE → LOAD → PROCESS → UNLOAD → COMPLETE` sequence under one explicit cell/machine state; every productive step fails closed outside `READY/IDLE`, and `ABORT` remains separate in the SDK safety path. *(implemented, tested)*
+* ✅ **Deterministic evidence contract:** `docs/HANDOFF_EVIDENCE.md` defines schema `1.0` emitted by both simulators. It carries only phase, decision, reason and a permitted identity fingerprint; raw board, recipe, revision and lot values never enter the JSON record. *(implemented, tested)*
 
 ---
 
@@ -107,7 +108,7 @@ bash build.sh
 
 ## ✅ Current Status & Next Steps
 
-**Real today:** version `0.0.7`, a locally tested traceable PCB hand-off core (`BoardFlow`) backed by `HYDRA-UMC-SDK`'s shared job gate, a deterministic twelve-test `unittest` suite, a saved-profile inspector, a visible read-only OpenPnP menu-script template, and identity-bound hand-off/cycle simulations with no machine I/O.
+**Real today:** version `0.0.8`, a locally tested traceable PCB hand-off core (`BoardFlow`) backed by `HYDRA-UMC-SDK`'s shared job gate, a deterministic fourteen-test `unittest` suite, a saved-profile inspector, a visible read-only OpenPnP menu-script template, identity-bound hand-off/cycle simulations, and a non-sensitive JSON evidence contract with no machine I/O.
 
 **Integration boundary:** OpenPnP retains placement kinematics, feeder control and raw motion at all times; this bridge only ever gates and traces the *hand-off* around it — robot loading, native placement completion, robot unloading.
 

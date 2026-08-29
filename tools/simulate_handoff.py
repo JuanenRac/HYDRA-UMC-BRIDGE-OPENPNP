@@ -20,7 +20,7 @@ SDK_ROOT = Path(os.environ.get("HYDRA_UMC_SDK_ROOT", ROOT.parent / "HYDRA-UMC-SD
 sys.path[:0] = [str(ROOT / "src"), str(SDK_ROOT / "clients" / "python" / "src")]
 
 from hydra_umc_sdk.bridge_contract import BridgeJob, CellState, JobPhase, MachineState  # noqa: E402
-from hydra_umc_bridge_openpnp import BoardIdentity, simulate_board_handoff  # noqa: E402
+from hydra_umc_bridge_openpnp import BoardIdentity, handoff_evidence, simulate_board_handoff  # noqa: E402
 
 
 def parse_args() -> argparse.Namespace:
@@ -51,7 +51,7 @@ def main() -> int:
         {"board_id": args.board_id},
     )
     result = simulate_board_handoff(job, CellState(args.cell_state), identity)
-    print(json.dumps(result.__dict__, sort_keys=True))
+    print(json.dumps(handoff_evidence(JobPhase(args.phase), result).to_dict(), sort_keys=True))
     return 0 if result.allowed else 2
 
 

@@ -11,6 +11,8 @@ from hydra_umc_sdk.bridge_contract import BridgeJob, CellState, JobPhase, Machin
 from hydra_umc_bridge_openpnp import (
     BoardFlow,
     BoardIdentity,
+    cycle_evidence,
+    handoff_evidence,
     inspect_machine_configuration,
     simulate_board_cycle,
     simulate_board_handoff,
@@ -101,6 +103,25 @@ class BoardFlowTests(unittest.TestCase):
         self.assertFalse(cycle.allowed)
         self.assertTrue(all(not step.allowed for step in cycle.steps))
         self.assertTrue(all(step.identity_fingerprint is None for step in cycle.steps))
+
+    def test_handoff_evidence_has_a_schema_and_excludes_raw_identity(self):
+        identity = BoardIdentity("pcb-42", "lumen-demo", "r1", "lot-20260830")
+        result = simulate_board_handoff(job(JobPhase.LOAD), CellState.READY, identity)
+        evidence = handoff_evidence(JobPhase.LOAD, result).to_dict()
+        self.assertEqual(evidence["schema_version"], "1.0")
+        self.assertEqual(evidence["mode"], "simulation-only")
+        self.assertEqual(evidence["phase"], "LOAD")
+        self.assertEqual(len(evidence["identity_fingerprint"] or ""), 64)
+        self.assertNotIn("pcb-42", str(evidence))
+        self.assertNotIn("lumen-demo", str(evidence))
+
+    def test_cycle_evidence_preserves_productive_phase_order(self):
+        identity = BoardIdentity("pcb-42", "lumen-demo", "r1", "lot-20260830")
+        evidence = cycle_evidence(simulate_board_cycle(CellState.READY, MachineState.IDLE, identity))
+        self.assertEqual(
+            [entry.phase for entry in evidence],
+            ["PREPARE", "LOAD", "PROCESS", "UNLOAD", "COMPLETE"],
+        )
 
     def test_openpnp_menu_script_remains_read_only(self):
         script_path = (

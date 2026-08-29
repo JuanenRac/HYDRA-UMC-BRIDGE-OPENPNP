@@ -7,6 +7,7 @@
 
 from .board_flow import BoardFlow, BoardFlowDecision
 from .configuration import OpenPnpMachineProfile, inspect_machine_configuration
+from .evidence import HandoffEvidence, cycle_evidence, handoff_evidence
 from .handoff import (
     BoardIdentity,
     SimulatedBoardCycle,
@@ -19,10 +20,13 @@ __all__ = [
     "BoardFlow",
     "BoardFlowDecision",
     "BoardIdentity",
+    "HandoffEvidence",
     "OpenPnpMachineProfile",
     "SimulatedBoardCycle",
     "SimulatedBoardHandoff",
     "inspect_machine_configuration",
+    "cycle_evidence",
+    "handoff_evidence",
     "simulate_board_cycle",
     "simulate_board_handoff",
 ]
