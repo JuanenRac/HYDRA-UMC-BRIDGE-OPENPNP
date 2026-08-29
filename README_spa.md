@@ -105,7 +105,7 @@ bash build.sh
 
 ## ✅ ESTADO ACTUAL Y PRÓXIMOS PASOS
 
-**Real hoy:** versión `0.0.1`, un núcleo trazable de traspaso de PCB probado en local (`BoardFlow`) apoyado en la puerta de trabajo compartida de `HYDRA-UMC-SDK`, una batería `unittest` determinista, y scripts de build-test no mutantes conectados a CI con clonado del SDK.
+**Real hoy:** versión `0.0.2`, un núcleo trazable de traspaso de PCB probado en local (`BoardFlow`) apoyado en la puerta de trabajo compartida de `HYDRA-UMC-SDK`, una batería `unittest` determinista, y scripts de build-test no mutantes conectados a CI con clonado del SDK.
 
 **Frontera de integración:** OpenPnP conserva en todo momento la cinemática de colocación, el control de alimentadores y el movimiento en bruto; este puente solo controla y traza el *traspaso* alrededor de ello — carga por robot, finalización de la colocación nativa, descarga por robot.
 

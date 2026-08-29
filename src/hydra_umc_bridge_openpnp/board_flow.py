@@ -44,4 +44,10 @@ class BoardFlow:
         # its whole family) is built to avoid. .get() with a safe fallback
         # costs nothing today and removes that latent coupling risk.
         handoff = self._handoffs.get(job.phase, "unrecognized-phase")
+        if handoff == "unrecognized-phase":
+            return BoardFlowDecision(
+                False,
+                handoff,
+                "job phase is not implemented by the OpenPnP board-flow contract",
+            )
         return BoardFlowDecision(decision.allowed, handoff, decision.reason)
