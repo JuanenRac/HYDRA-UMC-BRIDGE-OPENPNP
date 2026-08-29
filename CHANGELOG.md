@@ -6,6 +6,18 @@ GPL-3.0-or-later - see LICENSE
 
 # Changelog
 
+## [0.0.5] - 2026-08-30
+
+- Made the read-only OpenPnP menu script visibly report its result in an
+  informational dialog as well as the internal scripting console. The dialog
+  contains the same class/component summary and has no machine-control path.
+- Extended the read-only regression test to require the visible dialog while
+  retaining the rejection of movement, homing, feeder, actuator, enablement
+  and configuration-write calls.
+- Synchronized the English README and all six translated README files.
+- Successful incremental build: synchronized package metadata and
+  `hydra-umc.project.json`.
+
 ## [0.0.4] - 2026-08-30
 
 - Added `openpnp-scripts/HYDRA-UMC/inspect_profile.js`, a manually invoked
