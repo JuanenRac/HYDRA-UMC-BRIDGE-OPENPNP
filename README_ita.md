@@ -1,49 +1,159 @@
 <!-- =============================================================================
-HYDRA-UMC-BRIDGE-OPENPNP - Bridge di flusso schede OpenPnP
+HYDRA-UMC-BRIDGE-OPENPNP - Ponte di flusso schede per OpenPnP
 Copyright (C) 2026 JuanenRac (Electro Hobby 3D) <electrohobby3d@gmail.com>
 GPL-3.0-or-later - see LICENSE
 ============================================================================= -->
 
-# HYDRA-UMC-BRIDGE-OPENPNP
+<p align="center">
+  <img src="images/HYDRA_UMC_BANNER.svg" alt="Banner HYDRA-UMC-BRIDGE-OPENPNP" width="100%">
+</p>
 
-[🇺🇸 English](README.md) | [🇪🇸 Español](README_spa.md) | [🇫🇷 Français](README_fra.md) | 🇮🇹 **Italiano** | [🇩🇪 Deutsch](README_deu.md) | [🇨🇳 简体中文](README_zho.md) | [🇯🇵 日本語](README_jpn.md)
+# 🎯 HYDRA-UMC-BRIDGE-OPENPNP
 
-Bridge di flusso schede ad alto livello tra HYDRA-UMC e OpenPnP. Coordina
-preparazione PCB, carico robotizzato, piazzamento nativo, scarico e chiusura
-tracciabile. Non implementa cinematica di piazzamento, feeder o movimento diretto.
+<p align="center"><a href="README.md">🇺🇸 English</a> | <a href="README_spa.md">🇪🇸 Español</a> | <a href="README_fra.md">🇫🇷 Français</a> | 🇮🇹 <b>Italiano</b> | <a href="README_deu.md">🇩🇪 Deutsch</a> | <a href="README_zho.md">🇨🇳 简体中文</a> | <a href="README_jpn.md">🇯🇵 日本語</a></p>
 
-## Architettura
+### 📋 Ponte di coordinamento tracciabile del flusso schede per OpenPnP
 
-```text
-Lavoro OpenPnP <-> BRIDGE-OPENPNP <-> HYDRA-UMC-SDK <-> SERVER <-> sicurezza cella
+<p align="left">
+  <img src="https://img.shields.io/badge/Licenza-GPL%203.0-blue.svg" alt="GPL 3.0">
+  <img src="https://img.shields.io/badge/Python-3.11%2B-3776AB.svg" alt="Python 3.11+">
+  <img src="https://img.shields.io/badge/Safety-Fails%20Closed-red.svg" alt="Fail-safe">
+</p>
+
+---
+
+## 1. 🛠️ PANORAMICA TECNICA
+
+**HYDRA-UMC-BRIDGE-OPENPNP** è il ponte di alto livello per il flusso schede tra HYDRA-UMC e OpenPnP. Coordina la preparazione dei PCB, il carico da parte del robot, il posizionamento nativo, lo scarico da parte del robot e il completamento tracciabile. Non implementa la cinematica di posizionamento, il controllo dei feeder o il movimento grezzo — tutto ciò resta interamente all'interno di OpenPnP.
+
+Appartiene alla famiglia **External Automation Bridges**: un insieme di repository fratelli (CNC, LASER, OPENPNP, PRINTER3D, ROS2) che condividono lo stesso contratto di sicurezza di `HYDRA-UMC-SDK`, così nessun ponte può inventare una propria definizione di "sicuro per lavorare".
+
+### Caratteristiche principali:
+* ✅ **Nucleo tracciabile di flusso schede, reale:** `board_flow.py` — `BoardFlow.plan()` rifiuta qualsiasi lavoro il cui `board_id` sia vuoto o presenti spazi iniziali/finali *ancor prima* di valutare la porta di sicurezza; ogni passaggio deve portare un identificatore stabile e pulito. *(implementato, testato in `tests/test_board_flow.py`)*
+* ✅ **Mappa di passaggio per fase, reale:** un dizionario fisso associa ogni `JobPhase` (`PREPARE`, `LOAD`, `PROCESS`, `UNLOAD`, `COMPLETE`, `ABORT`) a una descrizione esplicita e leggibile del passaggio — `verify-board-and-fixture`, `robot-loads-board-into-pnp-fixture`, `openpnp-places-declared-job`, ecc. *(implementato)*
+* ✅ **Porta di sicurezza condivisa, reale:** ogni lavoro valido viene valutato tramite `evaluate_job()` del `bridge_contract` di `HYDRA-UMC-SDK`, la stessa porta usata da tutti i ponti fratelli e da HYDRA-UMC-SERVER; un passaggio produttivo procede solo quando la macchina esterna riporta `IDLE` e la cella HYDRA-UMC è `READY`. *(implementato)*
+* ✅ **Build/test non mutante:** `build-test.bat`/`.sh` compilano il codice sorgente ed eseguono la suite di test di tracciabilità delle schede e fail-safe senza toccare i file di versione o il CHANGELOG. *(implementato, vedi COMPILAZIONE ED ESECUZIONE più sotto)*
+* 🔜 **Estensione/API OpenPnP concreta** — scelta solo dopo aver testato la versione di OpenPnP installata e il profilo macchina. *(pianificato)*
+
+---
+
+## 2. 🔄 FLUSSO DI COORDINAMENTO DELLE SCHEDE
+
+```mermaid
+flowchart LR
+    JOB["Lavoro OpenPnP<br/>(board_id, fase)"] --> BRIDGE["BRIDGE-OPENPNP<br/>BoardFlow.plan()"]
+    BRIDGE -- BridgeJob --> SDK["HYDRA-UMC-SDK<br/>evaluate_job()"]
+    SDK -- GateDecision --> SERVER["HYDRA-UMC-SERVER"]
+    SERVER -- "passaggio / abort" --> CELL["Sicurezza di cella"]
 ```
 
-Ogni passaggio richiede `board_id` stabile, identificatore lavoro e chiave di
-idempotenza. Il bridge pianifica trasferimenti produttivi solo con macchina
-`IDLE` e cella `READY`; `ABORT` può chiedere una fermata controllata.
+---
 
-## Compilare e testare
+## 3. 🧱 ARCHITETTURA E DECISIONI DI PROGETTAZIONE
 
-Eseguire `build-test.bat` su Windows o `bash build-test.sh` su Linux. Non cambia
-versione né CHANGELOG e prova tracciabilità e fail-safe. API o estensione OpenPnP
-saranno scelte dopo prova di versione e profilo reali.
+* **Perché la validazione di `board_id` avviene prima di qualsiasi altra cosa in `plan()`.** Il primissimo controllo di `BoardFlow.plan()` è `not board_id or board_id.strip() != board_id` — un identificatore di scheda malformato o ambiguo viene rifiutato immediatamente, con una motivazione esplicita, invece di essere inoltrato a valle dove sarebbe più difficile da tracciare.
+* **Perché i passaggi sono un dizionario fisso indicizzato per `JobPhase`, non una formattazione di stringhe.** `BoardFlow._handoffs` mappa ciascuna delle sei fasi su una descrizione letterale e univoca. Un errore di battitura o una fase mancante fallisce rumorosamente (`KeyError`) invece di produrre silenziosamente una voce di log malformata — la tracciabilità dipende dal fatto che ogni fase abbia esattamente un nome.
+* **Perché il ponte pianifica un trasferimento produttivo solo quando la macchina esterna è `IDLE` e la cella è `READY`.** Il passaggio di schede è un'operazione fisica a due parti; se uno dei due lati non è in uno stato sicuro e noto, pianificare un trasferimento significherebbe chiedere a un robot di muoversi verso una macchina imprevedibile.
+* **Perché `ABORT` può comunque essere richiesto durante un guasto.** `JobPhase.ABORT` viene mappato su `request-controlled-stop`, che la porta condivisa `evaluate_job()` non blocca allo stesso modo in cui blocca le fasi produttive — un operatore o un supervisore deve sempre poter richiedere un arresto controllato, anche in pieno guasto.
+* **Perché l'estensione/API OpenPnP concreta è rimandata.** Vincolarsi a un'interfaccia plugin o a una superficie REST specifica di OpenPnP prima di testarla contro la versione di OpenPnP effettivamente installata e il profilo macchina rischierebbe di incorporare ipotesi che questo nucleo locale non può verificare.
+* **Come si inserisce nel resto dell'ecosistema.** BRIDGE-OPENPNP si trova tra un lavoro OpenPnP e `HYDRA-UMC-SDK` → `HYDRA-UMC-SERVER` → sicurezza di cella: coordina il lato robotico di un passaggio di schede, non rivendica mai la cinematica di posizionamento o il controllo dei feeder che appartengono a OpenPnP stesso.
 
-## Progetti correlati
+---
 
-| Progetto | Ruolo |
-| --- | --- |
-| [HYDRA-UMC-SDK](https://github.com/JuanenRac/HYDRA-UMC-SDK) | Lavori e porta di sicurezza condivisi. |
-| [HYDRA-UMC-SERVER](https://github.com/JuanenRac/HYDRA-UMC-SERVER) | Confine di orchestrazione autorizzato. |
-| [HYDRA-UMC-SAFETY-ZONES](https://github.com/JuanenRac/HYDRA-UMC-SAFETY-ZONES) | Evidenza futura delle zone di cella. |
+## 📂 STRUTTURA DELLE DIRECTORY
 
-## Stato
+```text
+HYDRA-UMC-BRIDGE-OPENPNP/
+├── src/
+│   └── hydra_umc_bridge_openpnp/
+│       ├── __init__.py
+│       └── board_flow.py        # BoardFlow: validazione board_id + porta di passaggio per fase
+├── tests/
+│   └── test_board_flow.py       # Test di tracciabilità delle schede e fail-safe
+├── tools/
+│   ├── build_test.py            # Compilatore + esecutore di test non mutante (build-test.bat/.sh)
+│   └── bump_version.py          # Sincronizza pyproject.toml, manifesto e CHANGELOG.md
+├── build-test.bat / build-test.sh  # Solo valida, non modifica mai il repository
+├── build.bat / build.sh            # Valida e, solo in caso di successo, aggiorna versione + CHANGELOG
+├── pyproject.toml               # Metadati del pacchetto; dipende da HYDRA-UMC-SDK (git)
+├── hydra-umc.project.json       # Manifesto dell'ecosistema (versione, maturità, famiglia)
+├── CHANGELOG.md
+├── CODE_OF_CONDUCT.md / CONTRIBUTING.md / SECURITY.md / SUPPORT.md
+├── LICENSE / LICENSE.md
+└── README.md / README_*.md      # Questo file e le sue 6 traduzioni
+```
 
-La versione `0.0.1` ha un nucleo locale testato di passaggio PCB. Non dichiara
-connessione a una macchina OpenPnP prima della prova dell'integrazione.
+---
 
-## ⚙️ Build con versione
+## 4. ⚙️ COMPILAZIONE ED ESECUZIONE
 
-`build-test.bat` / `build-test.sh` convalidano senza modificare il repository.
-`build.bat` / `build.sh` eseguono prima tale convalida e, solo se riesce,
-sincronizzano versione nativa, manifesto e `CHANGELOG.md`. Non esiste un
-comando `run` di macchina prima di una convalida con OpenPnP.
+Richiede Python 3.11+. `tools/build_test.py` si aspetta che `HYDRA-UMC-SDK` sia clonato come directory fratella (`../HYDRA-UMC-SDK`) o indicato tramite la variabile d'ambiente `HYDRA_UMC_SDK_ROOT`.
+
+```bash
+# Windows
+build-test.bat      # solo validazione — nessun cambio di versione/CHANGELOG
+build.bat            # valida e, se ha successo, aggiorna versione + CHANGELOG
+
+# Linux/macOS
+bash build-test.sh
+bash build.sh
+```
+
+`build-test` compila ogni modulo sotto `src/` con `py_compile` ed esegue l'intera suite `unittest` (`tests/test_board_flow.py`), dimostrando il rifiuto per tracciabilità delle schede e la porta fail-safe — non modifica mai il repository. `build` esegue prima quella stessa validazione e, solo in caso di successo, chiama `tools/bump_version.py` per sincronizzare la versione in `pyproject.toml`, `hydra-umc.project.json` e `CHANGELOG.md`. Non esiste ancora un comando `run` macchina reale — serve un'integrazione OpenPnP validata.
+
+---
+
+## ✅ STATO ATTUALE E PROSSIMI PASSI
+
+**Reale oggi:** versione `0.0.1`, un nucleo di passaggio PCB tracciabile testato in locale (`BoardFlow`) appoggiato sulla porta di lavoro condivisa di `HYDRA-UMC-SDK`, una suite `unittest` deterministica, e script build-test non mutanti collegati alla CI con checkout dell'SDK.
+
+**Confine di integrazione:** OpenPnP mantiene sempre la cinematica di posizionamento, il controllo dei feeder e il movimento grezzo; questo ponte regola e traccia solo il *passaggio* attorno ad esso — carico da parte del robot, completamento del posizionamento nativo, scarico da parte del robot.
+
+**Ancora da fare:** non viene rivendicata alcuna connessione a una macchina OpenPnP reale — l'estensione/API OpenPnP concreta sarà scelta solo dopo averla testata contro la versione di OpenPnP installata e il profilo macchina.
+
+---
+
+## 🔗 PROGETTI CORRELATI
+
+Questo progetto fa parte di un ecosistema robotico più ampio dello stesso autore (JuanenRac / Electro Hobby 3D), che copre firmware, software di controllo, nodi IA e strumenti di flotta. Vale la pena saperlo, perché una richiesta potrebbe in realtà riguardare uno di questi progetti anziché questo repository.
+
+### Direttamente correlati
+
+- **[HYDRA-UMC-SDK](https://github.com/JuanenRac/HYDRA-UMC-SDK)** — la porta condivisa di lavori e sicurezza attraverso cui questo ponte (e tutti gli altri) valuta i propri lavori.
+- **[HYDRA-UMC-SERVER](https://github.com/JuanenRac/HYDRA-UMC-SERVER)** — il confine di orchestrazione autorizzato a cui questo ponte riporta.
+- **[HYDRA-UMC-SAFETY-ZONES](https://github.com/JuanenRac/HYDRA-UMC-SAFETY-ZONES)** — futura evidenza di zona di cella.
+
+### Resto dell'ecosistema
+
+**Piattaforma HYDRA-UMC** — la micro-fabbrica multi-robot per cui questo ponte coordina gli ausiliari
+- **[HYDRA-UMC](https://github.com/JuanenRac/HYDRA-UMC)** — la scheda madre CM5 + STM32H745 che orchestra fino a 8 bracci robotici.
+- **[HYDRA-UMC-SERVER](https://github.com/JuanenRac/HYDRA-UMC-SERVER)** — il backend Express/WebSocket con cui parlano tutti i client di controllo e i ponti.
+- **[HYDRA-UMC-STUDIO](https://github.com/JuanenRac/HYDRA-UMC-STUDIO)** — dashboard di controllo web, visualizzazione 3D multi-robot.
+
+**External Automation Bridges** — repository fratelli che condividono questa stessa porta di lavoro `HYDRA-UMC-SDK`
+- **[HYDRA-UMC-BRIDGE-CNC](https://github.com/JuanenRac/HYDRA-UMC-BRIDGE-CNC)** — ponte di coordinamento cella CNC.
+- **[HYDRA-UMC-BRIDGE-LASER](https://github.com/JuanenRac/HYDRA-UMC-BRIDGE-LASER)** — ponte di coordinamento celle laser.
+- **[HYDRA-UMC-BRIDGE-PRINTER3D](https://github.com/JuanenRac/HYDRA-UMC-BRIDGE-PRINTER3D)** — ponte di coordinamento per software di stampa 3D open.
+- **[HYDRA-UMC-BRIDGE-ROS2](https://github.com/JuanenRac/HYDRA-UMC-BRIDGE-ROS2)** — confine di coordinamento bidirezionale con ROS 2.
+
+**Evidenze di sicurezza e integrazione**
+- **[HYDRA-UMC-SAFETY-ZONES](https://github.com/JuanenRac/HYDRA-UMC-SAFETY-ZONES)** — evidenze di sicurezza delle zone di cella usate in tutta la famiglia di ponti.
+- **[HYDRA-UMC-HIL-BRIDGE](https://github.com/JuanenRac/HYDRA-UMC-HIL-BRIDGE)** — evidenze di test hardware-in-the-loop.
+
+## 👤 AUTORE
+**JuanenRac** (Electro Hobby 3D)
+📧 electrohobby3d@gmail.com
+
+## 📜 LICENZA
+GPL-3.0 - Vedi LICENSE per i dettagli.
+
+## 🛠️ COMPILAZIONE ED ESECUZIONE
+
+Usa il controllo di compilazione senza versionamento prima di una build di rilascio:
+
+| Azione | Windows | Linux / macOS |
+|---|---|---|
+| Controllo di compilazione (nessun cambio di versione o CHANGELOG) | `build-test.bat` | `./build-test.sh` |
+| Esecuzione / sviluppo (quando presente) | `run*.bat` o `dev*.bat` | `./run*.sh` o `./dev*.sh` |
+
+`build-test.bat` e `build-test.sh` compilano o validano lo stack del progetto senza incrementare `hydra-umc.project.json` né modificare `CHANGELOG.md`. Possono produrre solo il normale output del compilatore. Gli script `build*.bat`, `build*.sh`, `run*` e `dev*` esistenti mantengono il proprio comportamento specifico del progetto, versionato o di runtime; usali quando serve quel comportamento.
