@@ -6,6 +6,19 @@ GPL-3.0-or-later - see LICENSE
 
 # Changelog
 
+## [0.0.7] - 2026-08-30
+
+- Added a trace-only productive-cycle simulator for ordered `PREPARE`, `LOAD`,
+  `PROCESS`, `UNLOAD` and `COMPLETE` evidence. It evaluates every phase with
+  the same explicit cell/machine state, without importing or controlling
+  OpenPnP.
+- Added `tools/simulate_cycle.py` and regression tests proving the ordered
+  READY/IDLE path and fail-closed denial of every productive phase while a
+  machine is RUNNING. `ABORT` remains on its distinct shared SDK safety path.
+- Synchronized the English README and all six translated README files.
+- Successful incremental build: synchronized package metadata and
+  `hydra-umc.project.json`.
+
 ## [0.0.6] - 2026-08-30
 
 - Added a trace-only board hand-off simulation with an explicit `BoardIdentity`

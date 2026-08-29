@@ -12,6 +12,7 @@ from hydra_umc_bridge_openpnp import (
     BoardFlow,
     BoardIdentity,
     inspect_machine_configuration,
+    simulate_board_cycle,
     simulate_board_handoff,
 )
 
@@ -77,6 +78,29 @@ class BoardFlowTests(unittest.TestCase):
         result = simulate_board_handoff(job(), CellState.READY, identity)
         self.assertFalse(result.allowed)
         self.assertEqual(result.handoff, "none")
+
+    def test_simulated_productive_cycle_is_ordered_and_allowed_when_ready(self):
+        identity = BoardIdentity("pcb-42", "lumen-demo", "r1", "lot-20260830")
+        cycle = simulate_board_cycle(CellState.READY, MachineState.IDLE, identity)
+        self.assertTrue(cycle.allowed)
+        self.assertEqual(
+            [step.handoff for step in cycle.steps],
+            [
+                "verify-board-and-fixture",
+                "robot-loads-board-into-pnp-fixture",
+                "openpnp-places-declared-job",
+                "robot-removes-board-from-fixture",
+                "record-completed-board-handoff",
+            ],
+        )
+        self.assertTrue(all(step.mode == "simulation-only" for step in cycle.steps))
+
+    def test_simulated_productive_cycle_denies_all_productive_phases_when_running(self):
+        identity = BoardIdentity("pcb-42", "lumen-demo", "r1", "lot-20260830")
+        cycle = simulate_board_cycle(CellState.READY, MachineState.RUNNING, identity)
+        self.assertFalse(cycle.allowed)
+        self.assertTrue(all(not step.allowed for step in cycle.steps))
+        self.assertTrue(all(step.identity_fingerprint is None for step in cycle.steps))
 
     def test_openpnp_menu_script_remains_read_only(self):
         script_path = (

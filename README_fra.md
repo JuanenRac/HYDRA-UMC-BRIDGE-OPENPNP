@@ -35,6 +35,7 @@ Il appartient à la famille **External Automation Bridges** : un ensemble de dé
 * ✅ **Build/test non mutant :** `build-test.bat`/`.sh` compilent le code source et exécutent la suite de tests de traçabilité des cartes et de sécurité intrinsèque sans toucher aux fichiers de version ni au CHANGELOG. *(implémenté, voir COMPILATION & EXÉCUTION ci-dessous)*
 * ✅ **Inspection en lecture seule du profil OpenPnP :** `inspect_openpnp_config.py` analyse un `machine.xml` enregistré, tandis que `openpnp-scripts/HYDRA-UMC/inspect_profile.js` est un modèle de script de menu OpenPnP invoqué manuellement ; les deux ne rapportent que la classe et le nombre de composants, et le modèle affiche ce résultat dans une boîte d'information sans envoyer de commande machine. *(implémenté, testé)*
 * ✅ **Simulation de transfert uniquement traçable :** `BoardIdentity` lie les identifiants de carte, recette, révision et lot avant que `simulate_board_handoff()` applique le portail partagé du SDK ; il n'émet une empreinte SHA-256 déterministe que pour un plan autorisé et n'a aucune E/S OpenPnP, série ou machine. *(implémenté, testé)*
+* ✅ **Simulation du cycle productif uniquement traçable :** `simulate_board_cycle()` évalue la séquence ordonnée `PREPARE → LOAD → PROCESS → UNLOAD → COMPLETE` sous un état explicite de cellule/machine ; chaque étape productive échoue fermée hors de `READY/IDLE`, et `ABORT` reste séparé dans le chemin de sécurité du SDK. *(implémenté, testé)*
 
 ---
 
@@ -106,7 +107,7 @@ bash build.sh
 
 ## ✅ ÉTAT ACTUEL ET PROCHAINES ÉTAPES
 
-**Réel aujourd'hui :** version `0.0.6`, un noyau de transfert de PCB traçable testé localement (`BoardFlow`) adossé au portail de tâches partagé de `HYDRA-UMC-SDK`, une suite `unittest` déterministe de dix tests, un inspecteur de profil enregistré, un modèle de menu OpenPnP visible en lecture seule et une simulation liée à l'identité sans E/S machine.
+**Réel aujourd'hui :** version `0.0.7`, un noyau de transfert de PCB traçable testé localement (`BoardFlow`) adossé au portail de tâches partagé de `HYDRA-UMC-SDK`, une suite `unittest` déterministe de douze tests, un inspecteur de profil enregistré, un modèle de menu OpenPnP visible en lecture seule et des simulations de transfert/cycle liées à l'identité sans E/S machine.
 
 **Frontière d'intégration :** OpenPnP conserve à tout moment la cinématique de placement, le contrôle des chargeurs et le mouvement brut ; ce pont ne fait que réguler et tracer le *transfert* autour de cela — chargement par robot, achèvement du placement natif, déchargement par robot.
 
