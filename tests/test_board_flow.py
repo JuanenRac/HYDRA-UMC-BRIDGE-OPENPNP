@@ -3,6 +3,10 @@
 # Copyright (C) 2026 JuanenRac (Electro Hobby 3D) <electrohobby3d@gmail.com>
 # GPL-3.0-or-later - see LICENSE
 # =============================================================================
+import json
+import os
+import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -122,6 +126,35 @@ class BoardFlowTests(unittest.TestCase):
             [entry.phase for entry in evidence],
             ["PREPARE", "LOAD", "PROCESS", "UNLOAD", "COMPLETE"],
         )
+
+    def test_simulation_clis_emit_non_sensitive_evidence(self):
+        root = Path(__file__).resolve().parent.parent
+        environment = os.environ.copy()
+        environment["HYDRA_UMC_SDK_ROOT"] = str(root.parent / "HYDRA-UMC-SDK")
+        command = [
+            sys.executable,
+            str(root / "tools" / "simulate_handoff.py"),
+            "--board-id",
+            "PCB-42",
+            "--recipe-id",
+            "LUMEN-DEMO",
+            "--revision",
+            "R1",
+            "--lot-id",
+            "LOT-20260830",
+        ]
+        output = subprocess.run(
+            command,
+            check=True,
+            capture_output=True,
+            cwd=root,
+            encoding="utf-8",
+            env=environment,
+        ).stdout
+        evidence = json.loads(output)
+        self.assertEqual(evidence["mode"], "simulation-only")
+        self.assertNotIn("PCB-42", output)
+        self.assertNotIn("LUMEN-DEMO", output)
 
     def test_openpnp_menu_script_remains_read_only(self):
         script_path = (

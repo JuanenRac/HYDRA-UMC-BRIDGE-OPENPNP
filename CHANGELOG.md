@@ -6,6 +6,17 @@ GPL-3.0-or-later - see LICENSE
 
 # Changelog
 
+## [0.0.9] - 2026-08-30
+
+- Extended `build_test.py` so CI compiles every Python tool as well as package
+  source, preventing a syntax-only regression in an operator CLI.
+- Added an end-to-end test which invokes `simulate_handoff.py`, validates its
+  `simulation-only` evidence, and proves raw board and recipe values are not
+  present in the emitted JSON.
+- Synchronized the English README and all six translated README files.
+- Successful incremental build: synchronized package metadata and
+  `hydra-umc.project.json`.
+
 ## [0.0.8] - 2026-08-30
 
 - Added deterministic JSON hand-off evidence schema `1.0` and its public
