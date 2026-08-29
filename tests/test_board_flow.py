@@ -8,7 +8,12 @@ import unittest
 from pathlib import Path
 
 from hydra_umc_sdk.bridge_contract import BridgeJob, CellState, JobPhase, MachineState
-from hydra_umc_bridge_openpnp import BoardFlow, inspect_machine_configuration
+from hydra_umc_bridge_openpnp import (
+    BoardFlow,
+    BoardIdentity,
+    inspect_machine_configuration,
+    simulate_board_handoff,
+)
 
 
 def job(phase=JobPhase.LOAD, machine=MachineState.IDLE):
@@ -52,6 +57,26 @@ class BoardFlowTests(unittest.TestCase):
     def test_invalid_machine_configuration_fails_safe(self):
         profile = inspect_machine_configuration("not-a-real-machine.xml")
         self.assertFalse(profile.available)
+
+    def test_simulated_handoff_binds_a_valid_identity_without_machine_io(self):
+        identity = BoardIdentity("pcb-42", "lumen-demo", "r1", "lot-20260830")
+        result = simulate_board_handoff(job(), CellState.READY, identity)
+        self.assertTrue(result.allowed)
+        self.assertEqual(result.mode, "simulation-only")
+        self.assertEqual(result.handoff, "robot-loads-board-into-pnp-fixture")
+        self.assertEqual(len(result.identity_fingerprint or ""), 64)
+
+    def test_simulated_handoff_denies_a_job_identity_mismatch(self):
+        identity = BoardIdentity("pcb-43", "lumen-demo", "r1", "lot-20260830")
+        result = simulate_board_handoff(job(), CellState.READY, identity)
+        self.assertFalse(result.allowed)
+        self.assertEqual(result.reason, "job board_id does not match the explicit board identity")
+
+    def test_simulated_handoff_denies_ambiguous_identity(self):
+        identity = BoardIdentity("pcb 42", "lumen-demo", "r1", "lot-20260830")
+        result = simulate_board_handoff(job(), CellState.READY, identity)
+        self.assertFalse(result.allowed)
+        self.assertEqual(result.handoff, "none")
 
     def test_openpnp_menu_script_remains_read_only(self):
         script_path = (

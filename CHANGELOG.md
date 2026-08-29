@@ -6,6 +6,20 @@ GPL-3.0-or-later - see LICENSE
 
 # Changelog
 
+## [0.0.6] - 2026-08-30
+
+- Added a trace-only board hand-off simulation with an explicit `BoardIdentity`
+  (board, recipe, revision and lot). Stable identifiers are fail-closed and an
+  allowed plan emits a deterministic SHA-256 fingerprint without exposing a
+  machine-control path.
+- Denied mismatched or ambiguous identities before they can be represented as
+  hand-off evidence; all results declare `simulation-only` mode.
+- Added the local `tools/simulate_handoff.py` CLI and three regression tests;
+  it has no OpenPnP, serial or machine I/O.
+- Synchronized the English README and all six translated README files.
+- Successful incremental build: synchronized package metadata and
+  `hydra-umc.project.json`.
+
 ## [0.0.5] - 2026-08-30
 
 - Made the read-only OpenPnP menu script visibly report its result in an
