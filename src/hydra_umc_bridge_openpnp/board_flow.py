@@ -35,4 +35,13 @@ class BoardFlow:
         if not board_id or board_id.strip() != board_id:
             return BoardFlowDecision(False, "none", "a stable board_id is required for traceability")
         decision: GateDecision = evaluate_job(job, cell_state)
-        return BoardFlowDecision(decision.allowed, self._handoffs[job.phase], decision.reason)
+        # ._handoffs currently covers every JobPhase the shared SDK defines
+        # (verified in this project's own tests), but that mapping lives in
+        # a SEPARATE repo (HYDRA-UMC-SDK) this bridge doesn't control - a
+        # future phase added there without a matching handoff label here
+        # would otherwise raise an unhandled KeyError instead of failing
+        # safely, exactly the class of crash the rest of this bridge (and
+        # its whole family) is built to avoid. .get() with a safe fallback
+        # costs nothing today and removes that latent coupling risk.
+        handoff = self._handoffs.get(job.phase, "unrecognized-phase")
+        return BoardFlowDecision(decision.allowed, handoff, decision.reason)
