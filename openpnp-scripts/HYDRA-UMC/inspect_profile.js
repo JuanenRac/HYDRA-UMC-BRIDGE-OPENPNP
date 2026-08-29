@@ -13,11 +13,20 @@ var cameraCount = machine.getCameras().size();
 var driverCount = machine.getDrivers().size();
 var feederCount = machine.getFeeders().size();
 
-print(
+var summary =
     "HYDRA_UMC_OPENPNP_PROFILE=PASS " +
     "machine_class=" + machineClass +
     " heads=" + headCount +
     " cameras=" + cameraCount +
     " drivers=" + driverCount +
-    " feeders=" + feederCount
+    " feeders=" + feederCount;
+
+// `print()` is kept for the OpenPnP console and this dialog makes the same
+// read-only result visible to the operator without commanding the machine.
+print(summary);
+javax.swing.JOptionPane.showMessageDialog(
+    null,
+    summary,
+    "HYDRA-UMC OpenPnP Profile (read-only)",
+    javax.swing.JOptionPane.INFORMATION_MESSAGE
 );

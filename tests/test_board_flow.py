@@ -66,6 +66,7 @@ class BoardFlowTests(unittest.TestCase):
             "machine.getCameras()",
             "machine.getDrivers()",
             "machine.getFeeders()",
+            "javax.swing.JOptionPane.showMessageDialog",
         ):
             self.assertIn(required_call, script)
         for forbidden_call in (
