@@ -33,7 +33,7 @@ Appartiene alla famiglia **External Automation Bridges**: un insieme di reposito
 * ✅ **Mappa di passaggio per fase, reale:** un dizionario fisso associa ogni `JobPhase` (`PREPARE`, `LOAD`, `PROCESS`, `UNLOAD`, `COMPLETE`, `ABORT`) a una descrizione esplicita e leggibile del passaggio — `verify-board-and-fixture`, `robot-loads-board-into-pnp-fixture`, `openpnp-places-declared-job`, ecc. *(implementato)*
 * ✅ **Porta di sicurezza condivisa, reale:** ogni lavoro valido viene valutato tramite `evaluate_job()` del `bridge_contract` di `HYDRA-UMC-SDK`, la stessa porta usata da tutti i ponti fratelli e da HYDRA-UMC-SERVER; un passaggio produttivo procede solo quando la macchina esterna riporta `IDLE` e la cella HYDRA-UMC è `READY`. *(implementato)*
 * ✅ **Build/test non mutante:** `build-test.bat`/`.sh` compilano il codice sorgente ed eseguono la suite di test di tracciabilità delle schede e fail-safe senza toccare i file di versione o il CHANGELOG. *(implementato, vedi COMPILAZIONE ED ESECUZIONE più sotto)*
-* 🔜 **Estensione/API OpenPnP concreta** — scelta solo dopo aver testato la versione di OpenPnP installata e il profilo macchina. *(pianificato)*
+* ✅ **Ispezione del profilo OpenPnP in sola lettura:** `inspect_openpnp_config.py` analizza un `machine.xml` salvato e riporta solo la classe e i conteggi dei componenti; non avvia mai OpenPnP, non apre porte seriali e non invia comandi alla macchina. *(implementato, testato)*
 
 ---
 
@@ -52,10 +52,10 @@ flowchart LR
 ## 3. 🧱 ARCHITETTURA E DECISIONI DI PROGETTAZIONE
 
 * **Perché la validazione di `board_id` avviene prima di qualsiasi altra cosa in `plan()`.** Il primissimo controllo di `BoardFlow.plan()` è `not board_id or board_id.strip() != board_id` — un identificatore di scheda malformato o ambiguo viene rifiutato immediatamente, con una motivazione esplicita, invece di essere inoltrato a valle dove sarebbe più difficile da tracciare.
-* **Perché i passaggi sono un dizionario fisso indicizzato per `JobPhase`, non una formattazione di stringhe.** `BoardFlow._handoffs` mappa ciascuna delle sei fasi su una descrizione letterale e univoca. Un errore di battitura o una fase mancante fallisce rumorosamente (`KeyError`) invece di produrre silenziosamente una voce di log malformata — la tracciabilità dipende dal fatto che ogni fase abbia esattamente un nome.
+* **Perché i passaggi sono un dizionario fisso indicizzato per `JobPhase`, non una formattazione di stringhe.** `BoardFlow._handoffs` mappa ciascuna delle sei fasi supportate su una descrizione letterale e univoca. Una futura fase sconosciuta viene rifiutata come `unrecognized-phase`; non può diventare un passaggio consentito solo perché la porta comune dell'SDK è pronta.
 * **Perché il ponte pianifica un trasferimento produttivo solo quando la macchina esterna è `IDLE` e la cella è `READY`.** Il passaggio di schede è un'operazione fisica a due parti; se uno dei due lati non è in uno stato sicuro e noto, pianificare un trasferimento significherebbe chiedere a un robot di muoversi verso una macchina imprevedibile.
 * **Perché `ABORT` può comunque essere richiesto durante un guasto.** `JobPhase.ABORT` viene mappato su `request-controlled-stop`, che la porta condivisa `evaluate_job()` non blocca allo stesso modo in cui blocca le fasi produttive — un operatore o un supervisore deve sempre poter richiedere un arresto controllato, anche in pieno guasto.
-* **Perché l'estensione/API OpenPnP concreta è rimandata.** Vincolarsi a un'interfaccia plugin o a una superficie REST specifica di OpenPnP prima di testarla contro la versione di OpenPnP effettivamente installata e il profilo macchina rischierebbe di incorporare ipotesi che questo nucleo locale non può verificare.
+* **Perché l'estensione/API OpenPnP dal vivo resta rimandata.** Il profilo macchina salvato può ora essere ispezionato in sola lettura, ma scegliere un'interfaccia plugin o una superficie dal vivo richiede ancora una sessione di prova non produttiva; ciò evita di incorporare ipotesi non verificate di movimento o feeder.
 * **Come si inserisce nel resto dell'ecosistema.** BRIDGE-OPENPNP si trova tra un lavoro OpenPnP e `HYDRA-UMC-SDK` → `HYDRA-UMC-SERVER` → sicurezza di cella: coordina il lato robotico di un passaggio di schede, non rivendica mai la cinematica di posizionamento o il controllo dei feeder che appartengono a OpenPnP stesso.
 
 ---
@@ -105,11 +105,11 @@ bash build.sh
 
 ## ✅ STATO ATTUALE E PROSSIMI PASSI
 
-**Reale oggi:** versione `0.0.2`, un nucleo di passaggio PCB tracciabile testato in locale (`BoardFlow`) appoggiato sulla porta di lavoro condivisa di `HYDRA-UMC-SDK`, una suite `unittest` deterministica, e script build-test non mutanti collegati alla CI con checkout dell'SDK.
+**Reale oggi:** versione `0.0.3`, un nucleo di passaggio PCB tracciabile testato in locale (`BoardFlow`) appoggiato sulla porta di lavoro condivisa di `HYDRA-UMC-SDK`, una suite `unittest` deterministica di sei test e un ispettore in sola lettura per un profilo OpenPnP `machine.xml` salvato.
 
 **Confine di integrazione:** OpenPnP mantiene sempre la cinematica di posizionamento, il controllo dei feeder e il movimento grezzo; questo ponte regola e traccia solo il *passaggio* attorno ad esso — carico da parte del robot, completamento del posizionamento nativo, scarico da parte del robot.
 
-**Ancora da fare:** non viene rivendicata alcuna connessione a una macchina OpenPnP reale — l'estensione/API OpenPnP concreta sarà scelta solo dopo averla testata contro la versione di OpenPnP installata e il profilo macchina.
+**Ancora da fare:** non viene rivendicata alcuna connessione dal vivo a una macchina OpenPnP — l'estensione/API concreta verrà scelta solo in una sessione isolata non produttiva con un operatore presente.
 
 ---
 

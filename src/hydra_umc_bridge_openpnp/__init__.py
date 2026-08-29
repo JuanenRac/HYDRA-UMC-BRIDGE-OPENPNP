@@ -6,5 +6,11 @@
 """Board-flow coordination with OpenPnP while preserving safety ownership."""
 
 from .board_flow import BoardFlow, BoardFlowDecision
+from .configuration import OpenPnpMachineProfile, inspect_machine_configuration
 
-__all__ = ["BoardFlow", "BoardFlowDecision"]
+__all__ = [
+    "BoardFlow",
+    "BoardFlowDecision",
+    "OpenPnpMachineProfile",
+    "inspect_machine_configuration",
+]

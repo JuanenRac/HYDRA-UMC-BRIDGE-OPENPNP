@@ -3,10 +3,12 @@
 # Copyright (C) 2026 JuanenRac (Electro Hobby 3D) <electrohobby3d@gmail.com>
 # GPL-3.0-or-later - see LICENSE
 # =============================================================================
+import tempfile
 import unittest
+from pathlib import Path
 
 from hydra_umc_sdk.bridge_contract import BridgeJob, CellState, JobPhase, MachineState
-from hydra_umc_bridge_openpnp import BoardFlow
+from hydra_umc_bridge_openpnp import BoardFlow, inspect_machine_configuration
 
 
 def job(phase=JobPhase.LOAD, machine=MachineState.IDLE):
@@ -36,6 +38,20 @@ class BoardFlowTests(unittest.TestCase):
         decision = BoardFlow().plan(unknown_phase_job, CellState.READY, "pcb-42")
         self.assertEqual(decision.handoff, "unrecognized-phase")
         self.assertFalse(decision.allowed)
+
+    def test_machine_configuration_is_summarized_read_only(self):
+        xml = """<openpnp-machine><machine class=\"ReferenceMachine\"><head/><camera/><camera/><driver/><feeder/><feeder/></machine></openpnp-machine>"""
+        with tempfile.TemporaryDirectory() as directory:
+            config = Path(directory) / "machine.xml"
+            config.write_text(xml, encoding="utf-8")
+            profile = inspect_machine_configuration(config)
+        self.assertTrue(profile.available)
+        self.assertEqual(profile.machine_class, "ReferenceMachine")
+        self.assertEqual((profile.head_count, profile.camera_count, profile.driver_count, profile.feeder_count), (1, 2, 1, 2))
+
+    def test_invalid_machine_configuration_fails_safe(self):
+        profile = inspect_machine_configuration("not-a-real-machine.xml")
+        self.assertFalse(profile.available)
 
 
 if __name__ == "__main__":
