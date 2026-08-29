@@ -20,7 +20,7 @@ SDK_ROOT = Path(os.environ.get("HYDRA_UMC_SDK_ROOT", ROOT.parent / "HYDRA-UMC-SD
 sys.path[:0] = [str(ROOT / "src"), str(SDK_ROOT / "clients" / "python" / "src")]
 
 from hydra_umc_sdk.bridge_contract import CellState, MachineState  # noqa: E402
-from hydra_umc_bridge_openpnp import BoardIdentity, simulate_board_cycle  # noqa: E402
+from hydra_umc_bridge_openpnp import BoardIdentity, cycle_evidence, simulate_board_cycle  # noqa: E402
 
 
 def parse_args() -> argparse.Namespace:
@@ -45,7 +45,7 @@ def main() -> int:
     payload = {
         "allowed": result.allowed,
         "mode": result.mode,
-        "steps": [step.__dict__ for step in result.steps],
+        "steps": [evidence.to_dict() for evidence in cycle_evidence(result)],
     }
     print(json.dumps(payload, sort_keys=True))
     return 0 if result.allowed else 2

@@ -6,6 +6,18 @@ GPL-3.0-or-later - see LICENSE
 
 # Changelog
 
+## [0.0.8] - 2026-08-30
+
+- Added deterministic JSON hand-off evidence schema `1.0` and its public
+  contract documentation. The record identifies only the phase, decision,
+  reason and permitted SHA-256 identity fingerprint; raw board, recipe,
+  revision and lot identifiers are excluded.
+- Updated both local simulation CLIs to emit that evidence and added regression
+  coverage for its non-sensitive fields and productive-phase order.
+- Synchronized the English README and all six translated README files.
+- Successful incremental build: synchronized package metadata and
+  `hydra-umc.project.json`.
+
 ## [0.0.7] - 2026-08-30
 
 - Added a trace-only productive-cycle simulator for ordered `PREPARE`, `LOAD`,
