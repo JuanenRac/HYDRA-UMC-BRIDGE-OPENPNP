@@ -6,6 +6,18 @@ GPL-3.0-or-later - see LICENSE
 
 # Changelog
 
+## [0.0.3] - 2026-08-30
+
+- Added a read-only inspector for a saved OpenPnP `machine.xml` profile. It
+  reports only the machine class and component counts; it does not start
+  OpenPnP, open serial ports or send any machine command.
+- Added Windows and POSIX launchers for the inspector, with explicit usage and
+  no mutation path.
+- Synchronized the English README and all six translated README files with the
+  inspected-profile boundary and current six-test coverage.
+- Successful incremental build: synchronized package metadata and
+  `hydra-umc.project.json`.
+
 ## [0.0.2] - 2026-08-30
 
 - Made an unknown SDK job phase fail closed instead of only avoiding a

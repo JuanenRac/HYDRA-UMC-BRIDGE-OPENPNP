@@ -33,7 +33,7 @@ Sie gehört zur Familie **External Automation Bridges**: einer Gruppe von Schwes
 * ✅ **Echte Übergabe-Zuordnung pro Phase:** ein festes Dictionary ordnet jeder `JobPhase` (`PREPARE`, `LOAD`, `PROCESS`, `UNLOAD`, `COMPLETE`, `ABORT`) eine explizite, lesbare Übergabebeschreibung zu — `verify-board-and-fixture`, `robot-loads-board-into-pnp-fixture`, `openpnp-places-declared-job` usw. *(implementiert)*
 * ✅ **Echtes gemeinsames Sicherheitsgatter:** jeder gültige Auftrag wird über `evaluate_job()` aus dem `bridge_contract` von `HYDRA-UMC-SDK` bewertet — demselben Gatter, das jede Schwesterbrücke und HYDRA-UMC-SERVER verwenden; eine produktive Übergabe erfolgt nur, wenn die externe Maschine `IDLE` meldet und die HYDRA-UMC-Zelle `READY` ist. *(implementiert)*
 * ✅ **Nicht-mutierender Build/Test:** `build-test.bat`/`.sh` kompilieren den Quellcode und führen die Test-Suite für Board-Rückverfolgbarkeit und Ausfallsicherheit aus, ohne Versionsdateien oder das CHANGELOG anzufassen. *(implementiert, siehe BUILD & AUSFÜHRUNG unten)*
-* 🔜 **Konkrete OpenPnP-Erweiterung/-API** — wird erst nach Tests mit der installierten OpenPnP-Version und dem Maschinenprofil gewählt. *(geplant)*
+* ✅ **Schreibgeschützte OpenPnP-Profilprüfung:** `inspect_openpnp_config.py` analysiert eine gespeicherte `machine.xml` und meldet nur Klasse und Komponentenanzahlen; es startet OpenPnP nie, öffnet keinen seriellen Port und sendet keinen Maschinenbefehl. *(implementiert, getestet)*
 
 ---
 
@@ -52,10 +52,10 @@ flowchart LR
 ## 3. 🧱 ARCHITEKTUR UND DESIGN-ENTSCHEIDUNGEN
 
 * **Warum die `board_id`-Validierung vor allem anderen in `plan()` erfolgt.** Die allererste Prüfung in `BoardFlow.plan()` ist `not board_id or board_id.strip() != board_id` — eine fehlerhafte oder mehrdeutige Board-Kennung wird sofort mit einer expliziten Begründung abgelehnt, statt stromabwärts weitergereicht zu werden, wo sie schwerer nachzuverfolgen wäre.
-* **Warum Übergaben ein festes, nach `JobPhase` indiziertes Dictionary sind und keine String-Formatierung.** `BoardFlow._handoffs` ordnet jede der sechs Phasen einer wörtlichen, eindeutigen Beschreibung zu. Ein Tippfehler oder eine fehlende Phase scheitert laut (`KeyError`), statt still einen fehlerhaften Log-Eintrag zu erzeugen — Rückverfolgbarkeit hängt davon ab, dass jede Phase genau einen Namen hat.
+* **Warum Übergaben ein festes, nach `JobPhase` indiziertes Dictionary sind und keine String-Formatierung.** `BoardFlow._handoffs` ordnet jede der sechs unterstützten Phasen einer wörtlichen, eindeutigen Beschreibung zu. Eine unbekannte zukünftige Phase wird als `unrecognized-phase` abgelehnt; sie kann nicht allein wegen eines bereiten gemeinsamen SDK-Gatters zu einer erlaubten Übergabe werden.
 * **Warum die Brücke einen produktiven Transfer nur plant, wenn die externe Maschine `IDLE` und die Zelle `READY` ist.** Board-Übergabe ist eine zweiseitige physische Operation; ist eine der beiden Seiten nicht in einem bekannt sicheren Zustand, würde die Planung eines Transfers bedeuten, einen Roboter in eine unvorhersehbare Maschine hinein zu bewegen.
 * **Warum `ABORT` auch während eines Fehlers angefordert werden kann.** `JobPhase.ABORT` wird auf `request-controlled-stop` abgebildet, das das gemeinsame `evaluate_job()`-Gatter nicht so blockiert wie produktive Phasen — ein Bediener oder Aufseher muss immer einen kontrollierten Stopp anfordern können, selbst mitten in einem Fehlerzustand.
-* **Warum die konkrete OpenPnP-Erweiterung/-API zurückgestellt wird.** Sich vor dem Test gegen die tatsächlich installierte OpenPnP-Version und das Maschinenprofil auf eine bestimmte Plugin-Schnittstelle oder REST-Oberfläche festzulegen, würde riskieren, Annahmen einzubauen, die dieser lokale Kern nicht verifizieren kann.
+* **Warum die Live-OpenPnP-Erweiterung/-API weiter zurückgestellt wird.** Das gespeicherte Maschinenprofil kann nun schreibgeschützt geprüft werden, doch die Wahl einer Plugin-Schnittstelle oder Live-Oberfläche erfordert weiterhin eine nicht-produktive Testsitzung; so werden unbestätigte Bewegungs- oder Feeder-Annahmen vermieden.
 * **Wie das in den Rest des Ökosystems passt.** BRIDGE-OPENPNP sitzt zwischen einem OpenPnP-Auftrag und `HYDRA-UMC-SDK` → `HYDRA-UMC-SERVER` → Zellsicherheit: es koordiniert die Roboterseite einer Board-Übergabe, es beansprucht niemals die Bestückungskinematik oder Feeder-Steuerung, die zu OpenPnP selbst gehören.
 
 ---
@@ -105,11 +105,11 @@ bash build.sh
 
 ## ✅ AKTUELLER STATUS UND NÄCHSTE SCHRITTE
 
-**Heute real:** Version `0.0.2`, ein lokal getesteter nachvollziehbarer PCB-Übergabekern (`BoardFlow`), gestützt auf das gemeinsame Auftragsgatter von `HYDRA-UMC-SDK`, eine deterministische `unittest`-Suite sowie nicht-mutierende Build-Test-Skripte, die in CI mit SDK-Checkout eingebunden sind.
+**Heute real:** Version `0.0.3`, ein lokal getesteter nachvollziehbarer PCB-Übergabekern (`BoardFlow`), gestützt auf das gemeinsame Auftragsgatter von `HYDRA-UMC-SDK`, eine deterministische `unittest`-Suite mit sechs Tests sowie ein schreibgeschützter Prüfer für ein gespeichertes OpenPnP-`machine.xml`-Profil.
 
 **Integrationsgrenze:** OpenPnP behält jederzeit Bestückungskinematik, Feeder-Steuerung und rohe Bewegung; diese Brücke steuert und verfolgt ausschließlich die *Übergabe* darum herum — Roboterbeladung, Abschluss der nativen Bestückung, Roboterentladung.
 
-**Noch offen:** es wird keine Verbindung zu einer realen OpenPnP-Maschine behauptet — die konkrete OpenPnP-Erweiterung/-API wird erst nach Tests gegen die installierte OpenPnP-Version und das Maschinenprofil gewählt.
+**Noch offen:** es wird keine Live-Verbindung zu einer OpenPnP-Maschine behauptet — die konkrete Erweiterung/API wird nur in einer isolierten, nicht-produktiven Sitzung mit anwesendem Bediener gewählt.
 
 ---
 
