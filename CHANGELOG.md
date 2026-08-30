@@ -6,11 +6,30 @@ GPL-3.0-or-later - see LICENSE
 
 # Changelog
 
-## Unreleased
+## [0.1.0] - Real actuator/signaler/nozzle-tip evidence
 
 - Bounded read-only OpenPnP `machine.xml` inspection to 4 MiB and rejects
   `DOCTYPE` declarations before XML parsing. Oversized or entity-declaring
   files fail unavailable rather than being treated as partial machine evidence.
+- **`configuration.py`** - `OpenPnpMachineProfile` gained `actuator_count`,
+  `nozzle_tip_count` and `signaler_count`, real OpenPnP concepts researched
+  against `org.openpnp.spi.Machine`'s own real `getAllActuators()`/
+  `getSignalers()`/`getNozzleTips()` methods and a real published
+  `machine.xml`
+  ([github.com/openpnp/openpnp](https://github.com/openpnp/openpnp/blob/develop/src/test/resources/config/SampleJobTest/machine.xml)).
+  Actuators control real hardware (vacuum valves, nozzle-tip-changer
+  clamps, feeder actuation); signalers bind an actuator to a real job/
+  machine state - both are safety/capability-relevant evidence this
+  profile never surfaced before. `signaler_count` counts direct children
+  of the `signalers` container generically, since signalers are a
+  polymorphic OpenPnP concept with no single fixed tag name.
+- **`openpnp-scripts/HYDRA-UMC/inspect_profile.js`** - the in-machine
+  read-only profile dialog now reports the same three counts via the
+  matching real, read-only `machine.getAllActuators()`/
+  `.getSignalers()`/`.getNozzleTips()` calls, kept consistent with the
+  offline XML parser.
+- 2 new/updated regression tests, extended to also cover the JS script's
+  new required calls - 17/17 tests passing.
 
 ## [0.0.9] - 2026-08-30
 

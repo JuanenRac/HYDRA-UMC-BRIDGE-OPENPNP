@@ -26,6 +26,18 @@ class OpenPnpMachineProfile:
     camera_count: int = 0
     driver_count: int = 0
     feeder_count: int = 0
+    # Real OpenPnP concepts, researched against org.openpnp.spi.Machine's
+    # own real getActuators()/getSignalers()/getNozzleTips() methods and a
+    # real published machine.xml (github.com/openpnp/openpnp/blob/develop/
+    # src/test/resources/config/SampleJobTest/machine.xml): actuators
+    # control real hardware (vacuum valves, nozzle-tip-changer clamps,
+    # feeder actuation) and signalers bind an actuator to a real job/
+    # machine state (job-state STOPPED/RUNNING/ERROR/FINISHED, or
+    # machine-state ERROR) - both are safety/capability-relevant evidence
+    # this profile never surfaced before.
+    actuator_count: int = 0
+    nozzle_tip_count: int = 0
+    signaler_count: int = 0
 
 
 def inspect_machine_configuration(config_path: str | Path) -> OpenPnpMachineProfile:
@@ -51,6 +63,14 @@ def inspect_machine_configuration(config_path: str | Path) -> OpenPnpMachineProf
     if machine is None:
         return OpenPnpMachineProfile(False, "OpenPnP configuration has no machine element")
 
+    signalers = machine.find("signalers")
+    # signalers are a real, polymorphic OpenPnP concept (ActuatorSignaler,
+    # SoundSignaler, ...): each subtype serializes under its own XML tag
+    # name, so counting direct children here (rather than a fixed tag)
+    # is the only way to count "how many signalers are configured"
+    # without hardcoding one subtype's name.
+    signaler_count = len(list(signalers)) if signalers is not None else 0
+
     return OpenPnpMachineProfile(
         True,
         "OpenPnP configuration parsed read-only",
@@ -59,4 +79,7 @@ def inspect_machine_configuration(config_path: str | Path) -> OpenPnpMachineProf
         len(machine.findall(".//camera")),
         len(machine.findall(".//driver")),
         len(machine.findall(".//feeder")),
+        len(machine.findall(".//actuator")),
+        len(machine.findall(".//nozzle-tip")),
+        signaler_count,
     )

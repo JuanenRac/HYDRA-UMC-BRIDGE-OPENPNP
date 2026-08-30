@@ -52,14 +52,44 @@ class BoardFlowTests(unittest.TestCase):
         self.assertFalse(decision.allowed)
 
     def test_machine_configuration_is_summarized_read_only(self):
-        xml = """<openpnp-machine><machine class=\"ReferenceMachine\"><head/><camera/><camera/><driver/><feeder/><feeder/></machine></openpnp-machine>"""
+        xml = (
+            "<openpnp-machine><machine class=\"ReferenceMachine\">"
+            "<head/><camera/><camera/><driver/><feeder/><feeder/>"
+            "<actuators><actuator/><actuator/><actuator/></actuators>"
+            "<nozzle-tips><nozzle-tip/><nozzle-tip/></nozzle-tips>"
+            "<signalers><actuator-signaler/></signalers>"
+            "</machine></openpnp-machine>"
+        )
         with tempfile.TemporaryDirectory() as directory:
             config = Path(directory) / "machine.xml"
             config.write_text(xml, encoding="utf-8")
             profile = inspect_machine_configuration(config)
         self.assertTrue(profile.available)
         self.assertEqual(profile.machine_class, "ReferenceMachine")
-        self.assertEqual((profile.head_count, profile.camera_count, profile.driver_count, profile.feeder_count), (1, 2, 1, 2))
+        self.assertEqual(
+            (
+                profile.head_count,
+                profile.camera_count,
+                profile.driver_count,
+                profile.feeder_count,
+                profile.actuator_count,
+                profile.nozzle_tip_count,
+                profile.signaler_count,
+            ),
+            (1, 2, 1, 2, 3, 2, 1),
+        )
+
+    def test_machine_configuration_without_signalers_reports_zero(self):
+        # signalers is an optional container - a machine that never
+        # configured one must report 0, not crash on a missing element.
+        xml = """<openpnp-machine><machine class=\"ReferenceMachine\"><head/></machine></openpnp-machine>"""
+        with tempfile.TemporaryDirectory() as directory:
+            config = Path(directory) / "machine.xml"
+            config.write_text(xml, encoding="utf-8")
+            profile = inspect_machine_configuration(config)
+        self.assertEqual(profile.signaler_count, 0)
+        self.assertEqual(profile.actuator_count, 0)
+        self.assertEqual(profile.nozzle_tip_count, 0)
 
     def test_invalid_machine_configuration_fails_safe(self):
         profile = inspect_machine_configuration("not-a-real-machine.xml")
@@ -182,6 +212,9 @@ class BoardFlowTests(unittest.TestCase):
             "machine.getCameras()",
             "machine.getDrivers()",
             "machine.getFeeders()",
+            "machine.getAllActuators()",
+            "machine.getSignalers()",
+            "machine.getNozzleTips()",
             "javax.swing.JOptionPane.showMessageDialog",
         ):
             self.assertIn(required_call, script)

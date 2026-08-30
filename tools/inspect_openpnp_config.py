@@ -39,12 +39,16 @@ def main() -> int:
         print(profile.reason)
         if profile.available:
             print(
-                "machine_class={0} heads={1} cameras={2} drivers={3} feeders={4}".format(
+                "machine_class={0} heads={1} cameras={2} drivers={3} feeders={4} "
+                "actuators={5} nozzle_tips={6} signalers={7}".format(
                     profile.machine_class,
                     profile.head_count,
                     profile.camera_count,
                     profile.driver_count,
                     profile.feeder_count,
+                    profile.actuator_count,
+                    profile.nozzle_tip_count,
+                    profile.signaler_count,
                 )
             )
     return 0 if profile.available else 1
