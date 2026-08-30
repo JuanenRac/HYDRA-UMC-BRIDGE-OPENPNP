@@ -8,6 +8,9 @@ GPL-3.0-or-later - see LICENSE
 
 ## [0.0.9] - 2026-08-30
 
+- Added `docs/BRIDGE_GUIDE.md`, defining OpenPnP board-flow scope, compatible
+  software, script conventions and the physical hand-off acceptance gate.
+- Removed the duplicated terminal BUILD & RUN section from all seven README files.
 - Extended `build_test.py` so CI compiles every Python tool as well as package
   source, preventing a syntax-only regression in an operator CLI.
 - Added an end-to-end test which invokes `simulate_handoff.py`, validates its
