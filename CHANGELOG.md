@@ -6,6 +6,12 @@ GPL-3.0-or-later - see LICENSE
 
 # Changelog
 
+## Unreleased
+
+- Bounded read-only OpenPnP `machine.xml` inspection to 4 MiB and rejects
+  `DOCTYPE` declarations before XML parsing. Oversized or entity-declaring
+  files fail unavailable rather than being treated as partial machine evidence.
+
 ## [0.0.9] - 2026-08-30
 
 - Added `docs/BRIDGE_GUIDE.md`, defining OpenPnP board-flow scope, compatible

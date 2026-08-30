@@ -8,7 +8,7 @@ GPL-3.0-or-later - see LICENSE
 
 ## Scope and operating model
 
-This bridge coordinates traceable PCB hand-off around OpenPnP; it is not a placement-motion, feeder or camera driver. `BoardFlow` maps SDK phases to verify/load/place/unload/record hand-offs. `BoardIdentity` binds board, recipe, revision and lot to local simulation evidence using a fingerprint rather than exposing raw identifiers. `configuration.py` reads a saved OpenPnP machine XML without opening a machine, and `evidence.py` produces transport-neutral simulation records.
+This bridge coordinates traceable PCB hand-off around OpenPnP; it is not a placement-motion, feeder or camera driver. `BoardFlow` maps SDK phases to verify/load/place/unload/record hand-offs. `BoardIdentity` binds board, recipe, revision and lot to local simulation evidence using a fingerprint rather than exposing raw identifiers. `configuration.py` reads a saved OpenPnP machine XML without opening a machine, bounds it to 4 MiB and rejects `DOCTYPE` declarations before parsing; `evidence.py` produces transport-neutral simulation records.
 
 All current cycles are `simulation-only`. The bridge does not start OpenPnP, open a port, change `machine.xml`, move a head, feed a component or run a placement job.
 

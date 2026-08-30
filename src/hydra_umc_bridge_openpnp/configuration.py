@@ -12,6 +12,9 @@ from pathlib import Path
 from xml.etree import ElementTree
 
 
+_MAX_CONFIGURATION_BYTES = 4 * 1024 * 1024
+
+
 @dataclass(frozen=True)
 class OpenPnpMachineProfile:
     """A non-sensitive, read-only summary of an OpenPnP machine profile."""
@@ -34,7 +37,13 @@ def inspect_machine_configuration(config_path: str | Path) -> OpenPnpMachineProf
     """
 
     try:
-        root = ElementTree.parse(Path(config_path)).getroot()
+        path = Path(config_path)
+        if path.stat().st_size > _MAX_CONFIGURATION_BYTES:
+            return OpenPnpMachineProfile(False, "OpenPnP configuration exceeds the 4 MiB inspection limit")
+        raw = path.read_bytes()
+        if b"<!DOCTYPE" in raw.upper():
+            return OpenPnpMachineProfile(False, "OpenPnP configuration declares a prohibited DOCTYPE")
+        root = ElementTree.fromstring(raw)
     except (ElementTree.ParseError, OSError, TypeError, ValueError) as error:
         return OpenPnpMachineProfile(False, f"OpenPnP configuration unavailable: {error}")
 

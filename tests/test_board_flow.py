@@ -65,6 +65,19 @@ class BoardFlowTests(unittest.TestCase):
         profile = inspect_machine_configuration("not-a-real-machine.xml")
         self.assertFalse(profile.available)
 
+    def test_oversized_or_doctype_machine_configuration_is_not_parsed(self):
+        with tempfile.TemporaryDirectory() as directory:
+            workspace = Path(directory)
+            oversized = workspace / "oversized.xml"
+            oversized.write_bytes(b" " * (4 * 1024 * 1024 + 1))
+            self.assertFalse(inspect_machine_configuration(oversized).available)
+
+            doctype = workspace / "doctype.xml"
+            doctype.write_text("<!DOCTYPE openpnp-machine><openpnp-machine><machine/></openpnp-machine>", encoding="utf-8")
+            profile = inspect_machine_configuration(doctype)
+        self.assertFalse(profile.available)
+        self.assertIn("DOCTYPE", profile.reason)
+
     def test_simulated_handoff_binds_a_valid_identity_without_machine_io(self):
         identity = BoardIdentity("pcb-42", "lumen-demo", "r1", "lot-20260830")
         result = simulate_board_handoff(job(), CellState.READY, identity)
