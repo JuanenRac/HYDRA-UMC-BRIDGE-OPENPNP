@@ -15,6 +15,7 @@ from .handoff import (
     simulate_board_cycle,
     simulate_board_handoff,
 )
+from .mqtt_transport import MqttPublish, OpenPnpMqttBridge, run_forever
 
 __all__ = [
     "BoardFlow",
@@ -29,4 +30,7 @@ __all__ = [
     "handoff_evidence",
     "simulate_board_cycle",
     "simulate_board_handoff",
+    "OpenPnpMqttBridge",
+    "MqttPublish",
+    "run_forever",
 ]

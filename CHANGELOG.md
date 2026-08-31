@@ -6,6 +6,22 @@ GPL-3.0-or-later - see LICENSE
 
 # Changelog
 
+## [0.1.1] - Real MQTT transport over the real broker
+
+- **`mqtt_transport.py`** (new) - reaches this bridge's already-real
+  (simulation-only) logic (`BoardFlow.plan`, `simulate_board_handoff`)
+  over `HYDRA-UMC-MQTT-BROKER`, per the ecosystem's own "MQTT via the
+  real broker, real commands included" decision. Unlike the sibling CNC/
+  LASER/PRINTER3D bridges there is no `state` topic - there is no real
+  machine transport in this bridge to observe, publishing one would be
+  dishonest. `OpenPnpMqttBridge` routes `hydra/bridges/openpnp/cmd/job`
+  (a bare gate check) and `.../cmd/handoff` (a full traceable simulation,
+  always tagged `mode: "simulation-only"` in its result), publishing
+  `.../cmd/<verb>/result`. Dispatch is pure in-memory logic, no real
+  broker, OpenPnP install or machine required to test it. `run_forever()`
+  is the thin real-I/O glue, lazily importing the new optional
+  `paho-mqtt` dependency. 12 new tests.
+
 ## [0.1.0] - Real actuator/signaler/nozzle-tip evidence
 
 - Bounded read-only OpenPnP `machine.xml` inspection to 4 MiB and rejects

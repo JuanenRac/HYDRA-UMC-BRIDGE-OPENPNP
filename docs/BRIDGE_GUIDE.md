@@ -12,6 +12,8 @@ This bridge coordinates traceable PCB hand-off around OpenPnP; it is not a place
 
 All current cycles are `simulation-only`. The bridge does not start OpenPnP, open a port, change `machine.xml`, move a head, feed a component or run a placement job.
 
+`mqtt_transport.py` reaches this same real (simulation-only) logic over `HYDRA-UMC-MQTT-BROKER`. Unlike the sibling CNC/LASER/PRINTER3D bridges there is no `hydra/bridges/openpnp/state` topic - publishing one would imply this bridge observes a real machine, and it does not. `OpenPnpMqttBridge.handle_message()` routes `hydra/bridges/openpnp/cmd/job` (a bare gate check via `BoardFlow.plan`) and `hydra/bridges/openpnp/cmd/handoff` (a full traceable simulation via `simulate_board_handoff`, always tagged `mode: "simulation-only"` in its result), publishing `.../cmd/<verb>/result`. Dispatch is pure in-memory logic, no real broker, OpenPnP install or machine required to test it - `paho-mqtt` (optional `[mqtt]` extra) is only imported, lazily, inside `run_forever()`.
+
 ## Compatible software
 
 The current inspected format is the public OpenPnP machine configuration XML. Future live integration targets OpenPnP itself, including installations controlling LumenPnP or other OpenPnP-supported machines, only through their documented interfaces and after identity/safety validation. It is not a generic bridge for arbitrary PnP vendors.
