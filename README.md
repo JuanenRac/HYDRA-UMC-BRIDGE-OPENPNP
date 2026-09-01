@@ -124,6 +124,7 @@ This project is part of a larger robotics ecosystem by the same author (JuanenRa
 
 - **[HYDRA-UMC-SDK](https://github.com/JuanenRac/HYDRA-UMC-SDK)** — the shared jobs-and-safety-gate every bridge (including this one) evaluates jobs through.
 - **[HYDRA-UMC-SERVER](https://github.com/JuanenRac/HYDRA-UMC-SERVER)** — the authorised orchestration boundary this bridge reports to.
+- **[HYDRA-UMC-MQTT-BROKER](https://github.com/JuanenRac/HYDRA-UMC-MQTT-BROKER)** — `mqtt_transport.py`'s real transport for this bridge's own `hydra/bridges/openpnp/...` topics (the job gate and a full traceable hand-off simulation - no `state` topic, since there's no real machine transport here to observe) - see that repo's own `docs/BRIDGE_TOPICS.md`.
 - **[HYDRA-UMC-SAFETY-ZONES](https://github.com/JuanenRac/HYDRA-UMC-SAFETY-ZONES)** — future cell-zone evidence.
 
 ### Rest of the Ecosystem
