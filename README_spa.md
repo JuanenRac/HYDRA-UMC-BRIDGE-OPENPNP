@@ -70,12 +70,22 @@ HYDRA-UMC-BRIDGE-OPENPNP/
 ├── src/
 │   └── hydra_umc_bridge_openpnp/
 │       ├── __init__.py
-│       └── board_flow.py        # BoardFlow: validación de board_id + puerta de traspaso por fase
+│       ├── board_flow.py        # BoardFlow: validación de board_id + puerta de traspaso por fase
+│       ├── configuration.py     # Inspecciona un XML de máquina OpenPnP sin abrir ni modificar ninguna máquina
+│       ├── evidence.py          # Evidencia determinista y no sensible a partir de simulaciones solo locales
+│       ├── handoff.py           # Valida/simula un traspaso de PCB trazable - nunca importa OpenPnP ni toca E/S
+│       └── mqtt_transport.py    # Transporte MQTT real - aquí no existe ningún transporte de máquina real
 ├── tests/
-│   └── test_board_flow.py       # Pruebas de trazabilidad de placas y seguridad
+│   ├── test_board_flow.py       # Pruebas de trazabilidad de placas y seguridad
+│   └── test_mqtt_transport.py   # Tests de forma de evidencia/estado MQTT contra un cliente de broker simulado
 ├── tools/
 │   ├── build_test.py            # Compilador + ejecutor de pruebas no mutante (build-test.bat/.sh)
 │   └── bump_version.py          # Sincroniza pyproject.toml, manifiesto y CHANGELOG.md
+├── docs/
+│   ├── BRIDGE_GUIDE.md          # Alcance, plataformas compatibles, scripts, puerta de aceptación de hardware
+│   └── HANDOFF_EVIDENCE.md      # Qué cuenta como evidencia de traspaso real y qué se niega a inferir este bridge
+├── images/
+│   └── HYDRA_UMC_BANNER.svg     # Banner del README
 ├── build-test.bat / build-test.sh  # Solo valida, nunca modifica el repositorio
 ├── build.bat / build.sh            # Valida y, solo si tiene éxito, sube versión + CHANGELOG
 ├── pyproject.toml               # Metadatos del paquete; depende de HYDRA-UMC-SDK (git)

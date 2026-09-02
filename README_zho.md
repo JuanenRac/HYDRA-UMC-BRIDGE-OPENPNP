@@ -70,12 +70,22 @@ HYDRA-UMC-BRIDGE-OPENPNP/
 ├── src/
 │   └── hydra_umc_bridge_openpnp/
 │       ├── __init__.py
-│       └── board_flow.py        # BoardFlow: board_id 校验 + 按阶段交接门控
+│       ├── board_flow.py        # BoardFlow: board_id 校验 + 按阶段交接门控
+│       ├── configuration.py     # 在不打开或修改任何机器的情况下检查 OpenPnP 机器 XML
+│       ├── evidence.py          # 仅基于本地模拟生成确定性、非敏感的证据
+│       ├── handoff.py           # 校验/模拟可追溯的 PCB 交接 - 绝不导入 OpenPnP,也不涉及任何 I/O
+│       └── mqtt_transport.py    # 真实 MQTT broker 传输 - 这里根本不存在真实的机器传输
 ├── tests/
-│   └── test_board_flow.py       # 板级可追溯性与故障安全测试
+│   ├── test_board_flow.py       # 板级可追溯性与故障安全测试
+│   └── test_mqtt_transport.py   # 针对模拟 broker 客户端的 MQTT 证据/状态格式测试
 ├── tools/
 │   ├── build_test.py            # 非变更式编译 + 测试运行器 (build-test.bat/.sh)
 │   └── bump_version.py          # 同步 pyproject.toml、清单和 CHANGELOG.md
+├── docs/
+│   ├── BRIDGE_GUIDE.md          # 范围、兼容平台、脚本、硬件验收门控
+│   └── HANDOFF_EVIDENCE.md      # 什么算作真实交接证据,以及此 bridge 拒绝推断的内容
+├── images/
+│   └── HYDRA_UMC_BANNER.svg     # README 横幅图
 ├── build-test.bat / build-test.sh  # 仅验证,绝不修改仓库
 ├── build.bat / build.sh            # 先验证,成功后才更新版本 + CHANGELOG
 ├── pyproject.toml               # 包元数据;依赖 HYDRA-UMC-SDK (git)

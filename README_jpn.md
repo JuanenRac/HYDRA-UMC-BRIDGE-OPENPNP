@@ -70,12 +70,22 @@ HYDRA-UMC-BRIDGE-OPENPNP/
 ├── src/
 │   └── hydra_umc_bridge_openpnp/
 │       ├── __init__.py
-│       └── board_flow.py        # BoardFlow: board_id検証 + フェーズ別受け渡しゲート
+│       ├── board_flow.py        # BoardFlow: board_id検証 + フェーズ別受け渡しゲート
+│       ├── configuration.py     # マシンを開いたり変更したりせずにOpenPnPマシンXMLを検査する
+│       ├── evidence.py          # ローカルのみのシミュレーションから決定論的で非機密な証拠を生成
+│       ├── handoff.py           # 追跡可能なPCB受け渡しを検証/シミュレート - OpenPnPを一切importせずI/Oにも触れない
+│       └── mqtt_transport.py    # 実MQTTブローカー転送 - ここには実際のマシン転送は一切存在しない
 ├── tests/
-│   └── test_board_flow.py       # ボード追跡性とフェイルセーフのテスト
+│   ├── test_board_flow.py       # ボード追跡性とフェイルセーフのテスト
+│   └── test_mqtt_transport.py   # 疑似ブローカークライアントに対するMQTT証拠/ステータス形状テスト
 ├── tools/
 │   ├── build_test.py            # 非破壊的なコンパイル+テストランナー (build-test.bat/.sh)
 │   └── bump_version.py          # pyproject.toml、マニフェスト、CHANGELOG.md を同期
+├── docs/
+│   ├── BRIDGE_GUIDE.md          # 適用範囲、対応プラットフォーム、スクリプト、ハードウェア受け入れゲート
+│   └── HANDOFF_EVIDENCE.md      # 何が実際の受け渡し証拠とみなされ、このbridgeが何を推測しないか
+├── images/
+│   └── HYDRA_UMC_BANNER.svg     # README バナー
 ├── build-test.bat / build-test.sh  # 検証のみ、リポジトリを一切変更しない
 ├── build.bat / build.sh            # 検証後、成功時のみバージョン + CHANGELOG を更新
 ├── pyproject.toml               # パッケージメタデータ。HYDRA-UMC-SDK に依存 (git)

@@ -70,12 +70,22 @@ HYDRA-UMC-BRIDGE-OPENPNP/
 ├── src/
 │   └── hydra_umc_bridge_openpnp/
 │       ├── __init__.py
-│       └── board_flow.py        # BoardFlow: board_id validation + per-phase hand-off gate
+│       ├── board_flow.py        # BoardFlow: board_id validation + per-phase hand-off gate
+│       ├── configuration.py     # Inspects an OpenPnP machine XML file without opening or changing a machine
+│       ├── evidence.py          # Deterministic, non-sensitive evidence from local-only simulations
+│       ├── handoff.py           # Validates/simulates a traceable PCB hand-off - never imports OpenPnP or touches I/O
+│       └── mqtt_transport.py    # Real MQTT broker transport - no real machine transport exists here at all
 ├── tests/
-│   └── test_board_flow.py       # Board traceability and fail-safe tests
+│   ├── test_board_flow.py       # Board traceability and fail-safe tests
+│   └── test_mqtt_transport.py   # MQTT evidence/status shape tests against a fake broker client
 ├── tools/
 │   ├── build_test.py            # Non-mutating compile + test runner (build-test.bat/.sh)
 │   └── bump_version.py          # Synchronizes pyproject.toml, manifest and CHANGELOG.md
+├── docs/
+│   ├── BRIDGE_GUIDE.md          # Scope, compatible platforms, scripts, hardware acceptance gate
+│   └── HANDOFF_EVIDENCE.md      # What counts as real hand-off evidence vs. what this bridge refuses to infer
+├── images/
+│   └── HYDRA_UMC_BANNER.svg     # README banner
 ├── build-test.bat / build-test.sh  # Validate only, never modifies the repository
 ├── build.bat / build.sh            # Validate, then bump version + CHANGELOG on success
 ├── pyproject.toml               # Package metadata; depends on HYDRA-UMC-SDK (git)
