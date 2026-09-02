@@ -124,6 +124,7 @@ Ce projet fait partie d'un écosystème robotique plus large du même auteur (Ju
 
 - **[HYDRA-UMC-SDK](https://github.com/JuanenRac/HYDRA-UMC-SDK)** — le portail partagé de tâches et de sécurité à travers lequel ce pont (et tous les autres) évalue ses tâches.
 - **[HYDRA-UMC-SERVER](https://github.com/JuanenRac/HYDRA-UMC-SERVER)** — la frontière d'orchestration autorisée à laquelle ce pont rend compte.
+- **[HYDRA-UMC-MQTT-BROKER](https://github.com/JuanenRac/HYDRA-UMC-MQTT-BROKER)** — le transport réel de `mqtt_transport.py` pour les topics `hydra/bridges/openpnp/...` propres à ce pont (le portail de travail et une simulation complète et traçable de transfert - pas de topic `state`, puisqu'il n'y a ici aucun transport machine réel à observer) - voir le `docs/BRIDGE_TOPICS.md` de ce dépôt.
 - **[HYDRA-UMC-SAFETY-ZONES](https://github.com/JuanenRac/HYDRA-UMC-SAFETY-ZONES)** — future preuve de zone de cellule.
 
 ### Reste de l'écosystème
