@@ -80,7 +80,11 @@ HYDRA-UMC-BRIDGE-OPENPNP/
 │   └── test_mqtt_transport.py   # Test di forma evidenza/stato MQTT contro un client broker fittizio
 ├── tools/
 │   ├── build_test.py            # Compilatore + esecutore di test non mutante (build-test.bat/.sh)
-│   └── bump_version.py          # Sincronizza pyproject.toml, manifesto e CHANGELOG.md
+│   ├── bump_version.py          # Sincronizza pyproject.toml, manifesto e CHANGELOG.md
+│   ├── ci_validate.py           # Base CI priva di dipendenze e non distruttiva (usata da .github/workflows/ci.yml)
+│   ├── inspect_openpnp_config.py # Ispettore CLI in sola lettura per un machine.xml OpenPnP salvato
+│   ├── simulate_cycle.py        # CLI del simulatore di ciclo produttivo, solo tracciabilità
+│   └── simulate_handoff.py      # CLI del simulatore di passaggio di consegne, solo tracciabilità
 ├── docs/
 │   ├── BRIDGE_GUIDE.md          # Ambito, piattaforme compatibili, script, porta di accettazione hardware
 │   └── HANDOFF_EVIDENCE.md      # Cosa conta come evidenza di passaggio reale e cosa questo bridge rifiuta di dedurre

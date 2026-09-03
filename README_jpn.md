@@ -80,7 +80,11 @@ HYDRA-UMC-BRIDGE-OPENPNP/
 │   └── test_mqtt_transport.py   # 疑似ブローカークライアントに対するMQTT証拠/ステータス形状テスト
 ├── tools/
 │   ├── build_test.py            # 非破壊的なコンパイル+テストランナー (build-test.bat/.sh)
-│   └── bump_version.py          # pyproject.toml、マニフェスト、CHANGELOG.md を同期
+│   ├── bump_version.py          # pyproject.toml、マニフェスト、CHANGELOG.md を同期
+│   ├── ci_validate.py           # 依存関係なし・非破壊のCIベースライン (.github/workflows/ci.yml が使用)
+│   ├── inspect_openpnp_config.py # 保存済みOpenPnP machine.xmlの読み取り専用CLIインスペクター
+│   ├── simulate_cycle.py        # 追跡専用の生産サイクルシミュレーターCLI
+│   └── simulate_handoff.py      # 追跡専用の基板ハンドオフシミュレーターCLI
 ├── docs/
 │   ├── BRIDGE_GUIDE.md          # 適用範囲、対応プラットフォーム、スクリプト、ハードウェア受け入れゲート
 │   └── HANDOFF_EVIDENCE.md      # 何が実際の受け渡し証拠とみなされ、このbridgeが何を推測しないか

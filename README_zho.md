@@ -80,7 +80,11 @@ HYDRA-UMC-BRIDGE-OPENPNP/
 │   └── test_mqtt_transport.py   # 针对模拟 broker 客户端的 MQTT 证据/状态格式测试
 ├── tools/
 │   ├── build_test.py            # 非变更式编译 + 测试运行器 (build-test.bat/.sh)
-│   └── bump_version.py          # 同步 pyproject.toml、清单和 CHANGELOG.md
+│   ├── bump_version.py          # 同步 pyproject.toml、清单和 CHANGELOG.md
+│   ├── ci_validate.py           # 无依赖、非破坏性的CI基线检查 (由 .github/workflows/ci.yml 使用)
+│   ├── inspect_openpnp_config.py # 针对已保存的OpenPnP machine.xml的只读CLI检查工具
+│   ├── simulate_cycle.py        # 仅追溯用途的生产周期模拟器CLI
+│   └── simulate_handoff.py      # 仅追溯用途的板卡交接模拟器CLI
 ├── docs/
 │   ├── BRIDGE_GUIDE.md          # 范围、兼容平台、脚本、硬件验收门控
 │   └── HANDOFF_EVIDENCE.md      # 什么算作真实交接证据,以及此 bridge 拒绝推断的内容

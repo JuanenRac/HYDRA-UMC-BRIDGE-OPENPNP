@@ -47,7 +47,7 @@ GPL-3.0-or-later - see LICENSE
 - 2 new/updated regression tests, extended to also cover the JS script's
   new required calls - 17/17 tests passing.
 
-## [0.0.9] - 2026-08-30
+## [0.0.9]
 
 - Added `docs/BRIDGE_GUIDE.md`, defining OpenPnP board-flow scope, compatible
   software, script conventions and the physical hand-off acceptance gate.
@@ -61,7 +61,7 @@ GPL-3.0-or-later - see LICENSE
 - Successful incremental build: synchronized package metadata and
   `hydra-umc.project.json`.
 
-## [0.0.8] - 2026-08-30
+## [0.0.8]
 
 - Added deterministic JSON hand-off evidence schema `1.0` and its public
   contract documentation. The record identifies only the phase, decision,
@@ -73,7 +73,7 @@ GPL-3.0-or-later - see LICENSE
 - Successful incremental build: synchronized package metadata and
   `hydra-umc.project.json`.
 
-## [0.0.7] - 2026-08-30
+## [0.0.7]
 
 - Added a trace-only productive-cycle simulator for ordered `PREPARE`, `LOAD`,
   `PROCESS`, `UNLOAD` and `COMPLETE` evidence. It evaluates every phase with
@@ -86,7 +86,7 @@ GPL-3.0-or-later - see LICENSE
 - Successful incremental build: synchronized package metadata and
   `hydra-umc.project.json`.
 
-## [0.0.6] - 2026-08-30
+## [0.0.6]
 
 - Added a trace-only board hand-off simulation with an explicit `BoardIdentity`
   (board, recipe, revision and lot). Stable identifiers are fail-closed and an
@@ -100,7 +100,7 @@ GPL-3.0-or-later - see LICENSE
 - Successful incremental build: synchronized package metadata and
   `hydra-umc.project.json`.
 
-## [0.0.5] - 2026-08-30
+## [0.0.5]
 
 - Made the read-only OpenPnP menu script visibly report its result in an
   informational dialog as well as the internal scripting console. The dialog
@@ -112,7 +112,7 @@ GPL-3.0-or-later - see LICENSE
 - Successful incremental build: synchronized package metadata and
   `hydra-umc.project.json`.
 
-## [0.0.4] - 2026-08-30
+## [0.0.4]
 
 - Added `openpnp-scripts/HYDRA-UMC/inspect_profile.js`, a manually invoked
   OpenPnP menu-script template which only reads the machine class and counts
@@ -125,7 +125,7 @@ GPL-3.0-or-later - see LICENSE
 - Successful incremental build: synchronized package metadata and
   `hydra-umc.project.json`.
 
-## [0.0.3] - 2026-08-30
+## [0.0.3]
 
 - Added a read-only inspector for a saved OpenPnP `machine.xml` profile. It
   reports only the machine class and component counts; it does not start
@@ -137,7 +137,7 @@ GPL-3.0-or-later - see LICENSE
 - Successful incremental build: synchronized package metadata and
   `hydra-umc.project.json`.
 
-## [0.0.2] - 2026-08-30
+## [0.0.2]
 
 - Made an unknown SDK job phase fail closed instead of only avoiding a
   `KeyError`: no unrecognized phase can now be marked as allowed for an
