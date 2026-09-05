@@ -6,6 +6,19 @@ GPL-3.0-or-later - see LICENSE
 
 # Changelog
 
+## [Unreleased]
+
+- **`run_forever()`'s initial MQTT connect now retries with backoff**
+  (`connect_with_retry()`, new) - found in an ecosystem-wide
+  software-improvements audit: this bridge's process used to die
+  outright if it started before HYDRA-UMC-MQTT-BROKER was listening yet,
+  a real race between two independent systemd units with no ordering
+  guarantee across a reboot. Only `OSError` (what an unreachable broker
+  actually raises) is retried; anything else surfaces immediately as a
+  real bug. Once connected, paho-mqtt's own `loop_forever()` already
+  handles a later mid-session drop on its own - only the first connect
+  needed this.
+
 ## [0.1.1] - Real MQTT transport over the real broker
 
 - **`mqtt_transport.py`** (new) - reaches this bridge's already-real

@@ -38,6 +38,7 @@ convention, `docs/BRIDGE_TOPICS.md`):
 from __future__ import annotations
 
 import json
+import time
 from dataclasses import asdict
 from typing import Callable
 
@@ -132,11 +133,45 @@ class OpenPnpMqttBridge:
         return MqttPublish(result_topic, json.dumps(asdict(result)))
 
 
+def connect_with_retry(
+    connect,
+    *,
+    max_attempts: int = 5,
+    retry_delay_seconds: float = 2.0,
+    sleep=time.sleep,
+) -> None:
+    """Retries `connect()` on OSError (what an unreachable broker actually
+    raises - connection refused, timeout), tolerating the real startup
+    race a systemd unit for this bridge hits if it starts before
+    HYDRA-UMC-MQTT-BROKER is listening yet (both are independent systemd
+    units with no ordering guarantee across a real reboot - found in an
+    ecosystem-wide software-improvements audit). Only OSError is retried;
+    anything else is a real bug, not a transient startup race, and
+    propagates immediately. `sleep` is injectable so tests can prove the
+    retry/give-up behavior without a real multi-second wait."""
+    last_error: OSError | None = None
+    for attempt in range(1, max_attempts + 1):
+        try:
+            connect()
+            return
+        except OSError as error:
+            last_error = error
+            if attempt < max_attempts:
+                sleep(retry_delay_seconds)
+    raise RuntimeError(
+        f"could not reach the MQTT broker after {max_attempts} attempts "
+        f"({retry_delay_seconds}s apart): {last_error}"
+    ) from last_error
+
+
 def run_forever(
     bridge: OpenPnpMqttBridge,
     host: str,
     port: int = 1883,
     client_id: str = "hydra-umc-bridge-openpnp",
+    *,
+    max_connect_attempts: int = 5,
+    connect_retry_delay_seconds: float = 2.0,
 ) -> None:
     """Connect to a real HYDRA-UMC-MQTT-BROKER and dispatch forever.
 
@@ -162,5 +197,9 @@ def run_forever(
     client = mqtt.Client(client_id=client_id)
     client.on_connect = on_connect
     client.on_message = on_message
-    client.connect(host, port)
+    connect_with_retry(
+        lambda: client.connect(host, port),
+        max_attempts=max_connect_attempts,
+        retry_delay_seconds=connect_retry_delay_seconds,
+    )
     client.loop_forever()

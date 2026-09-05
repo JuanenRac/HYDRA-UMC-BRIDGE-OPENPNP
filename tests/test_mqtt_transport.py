@@ -118,5 +118,55 @@ class RunForeverTests(unittest.TestCase):
         self.assertIn("paho-mqtt is not installed", str(context.exception))
 
 
+class ConnectWithRetryTests(unittest.TestCase):
+    """connect_with_retry() is pure - no real paho-mqtt/broker needed to
+    prove the real startup-race tolerance an ecosystem-wide software
+    audit found missing here (this bridge's process used to die outright
+    if it started before HYDRA-UMC-MQTT-BROKER was listening yet)."""
+
+    def test_succeeds_on_the_first_try_without_sleeping(self):
+        from hydra_umc_bridge_openpnp import connect_with_retry
+
+        sleeps: list = []
+        connect_with_retry(lambda: None, sleep=sleeps.append)
+        self.assertEqual(sleeps, [])
+
+    def test_retries_a_transient_connection_failure_then_succeeds(self):
+        from hydra_umc_bridge_openpnp import connect_with_retry
+
+        attempts = {"n": 0}
+        sleeps: list = []
+
+        def flaky_connect() -> None:
+            attempts["n"] += 1
+            if attempts["n"] < 3:
+                raise ConnectionRefusedError("broker not up yet")
+
+        connect_with_retry(flaky_connect, max_attempts=5, retry_delay_seconds=1.5, sleep=sleeps.append)
+        self.assertEqual(attempts["n"], 3)
+        self.assertEqual(sleeps, [1.5, 1.5])
+
+    def test_gives_up_after_max_attempts_with_a_clear_error(self):
+        from hydra_umc_bridge_openpnp import connect_with_retry
+
+        def always_fails() -> None:
+            raise ConnectionRefusedError("broker still not up")
+
+        with self.assertRaises(RuntimeError) as context:
+            connect_with_retry(always_fails, max_attempts=3, retry_delay_seconds=0.01, sleep=lambda _: None)
+        self.assertIn("after 3 attempts", str(context.exception))
+        self.assertIn("broker still not up", str(context.exception))
+
+    def test_a_non_os_error_is_never_retried(self):
+        from hydra_umc_bridge_openpnp import connect_with_retry
+
+        def broken_connect() -> None:
+            raise ValueError("not an OSError - a real bug, not a broker being down")
+
+        with self.assertRaises(ValueError):
+            connect_with_retry(broken_connect, sleep=lambda _: None)
+
+
+
 if __name__ == "__main__":
     unittest.main()
