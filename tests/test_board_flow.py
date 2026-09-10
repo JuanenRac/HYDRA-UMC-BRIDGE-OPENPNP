@@ -40,7 +40,7 @@ class BoardFlowTests(unittest.TestCase):
     def test_placement_is_denied_while_machine_is_running(self):
         self.assertFalse(BoardFlow().plan(job(JobPhase.PROCESS, MachineState.RUNNING), CellState.READY, "pcb-42").allowed)
 
-    # V07-014 (found in an independent revalidation audit, P2, shared
+    # V07-014 (P2, shared
     # with BRIDGE-AMR/BRIDGE-DROIDS/BRIDGE-ROS2): HYDRA-UMC-SDK's own
     # real fix (REV-008) now rejects an unrecognised `phase` AT
     # CONSTRUCTION TIME (`BridgeJob.__post_init__` requires a real
