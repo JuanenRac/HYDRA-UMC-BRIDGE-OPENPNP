@@ -21,8 +21,7 @@ GPL-3.0-or-later - see LICENSE
   runtime code changed, no version bump.
 
 - **`run_forever()`'s initial MQTT connect now retries with backoff**
-  (`connect_with_retry()`, new) - found in an ecosystem-wide
-  software-improvements audit: this bridge's process used to die
+  (`connect_with_retry()`, new) - this bridge's process used to die
   outright if it started before HYDRA-UMC-MQTT-BROKER was listening yet,
   a real race between two independent systemd units with no ordering
   guarantee across a reboot. Only `OSError` (what an unreachable broker
@@ -33,7 +32,7 @@ GPL-3.0-or-later - see LICENSE
 
 ## [0.1.2] - V07-014: the SDK's own real phase-construction rejection reached this bridge's test suite
 
-A second independent revalidation audit found this bridge's own
+A second, closer review found this bridge's own
 `test_a_phase_unknown_to_this_bridge_fails_safe_instead_of_crashing`
 still constructed a `BridgeJob` directly with a raw `"SOME_FUTURE_PHASE"`
 string - HYDRA-UMC-SDK's own real fix (REV-008) now rejects that AT
