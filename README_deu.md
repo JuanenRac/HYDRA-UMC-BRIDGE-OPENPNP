@@ -22,6 +22,10 @@ GPL-3.0-or-later - see LICENSE
 
 ---
 
+> **Ehrlichkeitscheck - was heute wirklich läuft:** der nachvollziehbare Board-Flow-Kern und sein Sicherheitsgate (`board_flow.py` mit `BoardFlow`, das jeden Job durch das echte `evaluate_job()` von `HYDRA-UMC-SDK` leitet), der schreibgeschützte OpenPnP-Profilinspektor (`configuration.py`), die reinen Trace-Übergabe-/Zyklus-Simulatoren (`handoff.py`, `evidence.py`) und der MQTT-Evidenz-/Statustransport (`mqtt_transport.py`) sind real und durch 33 bestehende `unittest`-Fälle abgedeckt (`python tools/build_test.py` - `test_board_flow.py`, `test_mqtt_transport.py`). Nichts davon hat je OpenPnP, eine echte Maschinenverbindung oder einen echten MQTT-Broker geöffnet - `test_mqtt_transport.py` verwendet einen simulierten Broker-Client, `configuration.py` liest ausschließlich eine gespeicherte `machine.xml`-Datei, und die Simulatoren in `handoff.py`/`evidence.py` sind ausdrücklich rein lokal, ohne OpenPnP-, Seriell- oder Maschinen-E/A. Es gibt noch keine Live-Integration mit der OpenPnP-Erweiterung/API - siehe „Aktueller Status und nächste Schritte" weiter unten, das dies bereits klar sagt, sowie `CHANGELOG.md` für das, was bisher genau ausgeliefert wurde.
+
+---
+
 ## 1. 🛠️ TECHNISCHER ÜBERBLICK
 
 **HYDRA-UMC-BRIDGE-OPENPNP** ist die High-Level-Board-Flow-Brücke zwischen HYDRA-UMC und OpenPnP. Sie koordiniert PCB-Vorbereitung, Roboterbeladung, native Bestückung, Roboterentladung und nachvollziehbaren Abschluss. Sie implementiert weder Bestückungskinematik, Feeder-Steuerung noch rohe Bewegung — das bleibt vollständig innerhalb von OpenPnP.
@@ -122,7 +126,7 @@ bash build.sh
 
 ## ✅ AKTUELLER STATUS UND NÄCHSTE SCHRITTE
 
-**Heute real:** Version `0.1.2`, ein lokal getesteter nachvollziehbarer PCB-Übergabekern (`BoardFlow`), gestützt auf das gemeinsame Auftragsgatter von `HYDRA-UMC-SDK`, eine deterministische `unittest`-Suite mit zweiunddreißig Tests, ein Prüfer für ein gespeichertes Profil, der echte OpenPnP-Aktuator-/Signalgeber-/Düsenspitzen-Evidenz zusammen mit Kopf-/Kamera-/Treiber-/Feeder-Zählungen meldet, eine sichtbare schreibgeschützte OpenPnP-Menüvorlage, identitätsgebundene Übergabe-/Zyklus-Simulationen und ein CI-verifizierter nicht-sensibler JSON-Evidenzvertrag ohne Maschinen-E/A.
+**Heute real:** Version `0.1.2`, ein lokal getesteter nachvollziehbarer PCB-Übergabekern (`BoardFlow`), gestützt auf das gemeinsame Auftragsgatter von `HYDRA-UMC-SDK`, ein echter MQTT-Evidenz-/Statustransport (`mqtt_transport.py`), eine deterministische `unittest`-Suite mit dreiunddreißig Tests, ein Prüfer für ein gespeichertes Profil, der echte OpenPnP-Aktuator-/Signalgeber-/Düsenspitzen-Evidenz zusammen mit Kopf-/Kamera-/Treiber-/Feeder-Zählungen meldet, eine sichtbare schreibgeschützte OpenPnP-Menüvorlage, identitätsgebundene Übergabe-/Zyklus-Simulationen und ein CI-verifizierter nicht-sensibler JSON-Evidenzvertrag ohne Maschinen-E/A.
 
 **Integrationsgrenze:** OpenPnP behält jederzeit Bestückungskinematik, Feeder-Steuerung und rohe Bewegung; diese Brücke steuert und verfolgt ausschließlich die *Übergabe* darum herum — Roboterbeladung, Abschluss der nativen Bestückung, Roboterentladung.
 

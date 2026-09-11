@@ -22,6 +22,10 @@ GPL-3.0-or-later - see LICENSE
 
 ---
 
+> **Verifica di onestà - cosa funziona davvero oggi:** il nucleo tracciabile del flusso di schede e il suo gate di sicurezza (`board_flow.py` con `BoardFlow`, che fa passare ogni lavoro attraverso il vero `evaluate_job()` di `HYDRA-UMC-SDK`), l'ispettore di profilo OpenPnP di sola lettura (`configuration.py`), i simulatori di passaggio/ciclo solo di traccia (`handoff.py`, `evidence.py`), e il trasporto MQTT di evidenza/stato (`mqtt_transport.py`) sono reali e coperti da 33 casi `unittest` superati (`python tools/build_test.py` - `test_board_flow.py`, `test_mqtt_transport.py`). Nulla di tutto ciò ha mai aperto OpenPnP, un vero collegamento macchina, o un vero broker MQTT - `test_mqtt_transport.py` usa un client broker fittizio, `configuration.py` si limita ad analizzare un file `machine.xml` salvato, e i simulatori di `handoff.py`/`evidence.py` sono esplicitamente solo locali, senza I/O OpenPnP, seriale o macchina. Non esiste ancora un'integrazione live con l'estensione/API OpenPnP - vedi "Stato attuale e prossimi passi" qui sotto, che lo dice già chiaramente, e `CHANGELOG.md` per cosa è stato esattamente consegnato finora.
+
+---
+
 ## 1. 🛠️ PANORAMICA TECNICA
 
 **HYDRA-UMC-BRIDGE-OPENPNP** è il ponte di alto livello per il flusso schede tra HYDRA-UMC e OpenPnP. Coordina la preparazione dei PCB, il carico da parte del robot, il posizionamento nativo, lo scarico da parte del robot e il completamento tracciabile. Non implementa la cinematica di posizionamento, il controllo dei feeder o il movimento grezzo — tutto ciò resta interamente all'interno di OpenPnP.
@@ -122,7 +126,7 @@ bash build.sh
 
 ## ✅ STATO ATTUALE E PROSSIMI PASSI
 
-**Reale oggi:** versione `0.1.2`, un nucleo di passaggio PCB tracciabile testato in locale (`BoardFlow`) appoggiato sulla porta di lavoro condivisa di `HYDRA-UMC-SDK`, una suite `unittest` deterministica di trentadue test, un ispettore di profilo salvato che riporta evidenza reale di attuatori/segnalatori/punte ugello OpenPnP insieme ai conteggi di teste/telecamere/driver/alimentatori, un modello visibile di menu OpenPnP in sola lettura, simulazioni di passaggio/ciclo legate all'identità e un contratto JSON di evidenza non sensibile verificato da CI senza I/O macchina.
+**Reale oggi:** versione `0.1.2`, un nucleo di passaggio PCB tracciabile testato in locale (`BoardFlow`) appoggiato sulla porta di lavoro condivisa di `HYDRA-UMC-SDK`, un vero trasporto MQTT di evidenza/stato (`mqtt_transport.py`), una suite `unittest` deterministica di trentatré test, un ispettore di profilo salvato che riporta evidenza reale di attuatori/segnalatori/punte ugello OpenPnP insieme ai conteggi di teste/telecamere/driver/alimentatori, un modello visibile di menu OpenPnP in sola lettura, simulazioni di passaggio/ciclo legate all'identità e un contratto JSON di evidenza non sensibile verificato da CI senza I/O macchina.
 
 **Confine di integrazione:** OpenPnP mantiene sempre la cinematica di posizionamento, il controllo dei feeder e il movimento grezzo; questo ponte regola e traccia solo il *passaggio* attorno ad esso — carico da parte del robot, completamento del posizionamento nativo, scarico da parte del robot.
 
