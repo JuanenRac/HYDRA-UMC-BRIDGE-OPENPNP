@@ -170,6 +170,43 @@ class BoardFlowTests(unittest.TestCase):
         self.assertTrue(all(not step.allowed for step in cycle.steps))
         self.assertTrue(all(step.identity_fingerprint is None for step in cycle.steps))
 
+    # I46: slot_id/rack_id/table_id are a real, separate physical-placement
+    # identity - board_id/recipe_id/revision/lot_id alone cannot tell two
+    # different physical placements of the exact same board apart.
+    def test_default_slot_rack_table_are_empty_and_match_explicit_empty_strings(self):
+        implicit = BoardIdentity("pcb-42", "lumen-demo", "r1", "lot-20260830")
+        explicit = BoardIdentity("pcb-42", "lumen-demo", "r1", "lot-20260830", "", "", "")
+        self.assertIsNone(implicit.validation_error())
+        self.assertEqual(implicit.fingerprint(), explicit.fingerprint(), "omitting slot/rack/table must be identical to passing empty strings explicitly")
+
+    def test_a_different_slot_id_produces_a_genuinely_different_fingerprint(self):
+        base = BoardIdentity("pcb-42", "lumen-demo", "r1", "lot-20260830", slot_id="feeder-3")
+        other_slot = BoardIdentity("pcb-42", "lumen-demo", "r1", "lot-20260830", slot_id="feeder-4")
+        untracked = BoardIdentity("pcb-42", "lumen-demo", "r1", "lot-20260830")
+        self.assertNotEqual(base.fingerprint(), other_slot.fingerprint())
+        self.assertNotEqual(base.fingerprint(), untracked.fingerprint())
+
+    def test_a_different_rack_id_produces_a_genuinely_different_fingerprint(self):
+        base = BoardIdentity("pcb-42", "lumen-demo", "r1", "lot-20260830", rack_id="rack-a")
+        other_rack = BoardIdentity("pcb-42", "lumen-demo", "r1", "lot-20260830", rack_id="rack-b")
+        self.assertNotEqual(base.fingerprint(), other_rack.fingerprint())
+
+    def test_a_different_table_id_produces_a_genuinely_different_fingerprint(self):
+        base = BoardIdentity("pcb-42", "lumen-demo", "r1", "lot-20260830", table_id="table-1")
+        other_table = BoardIdentity("pcb-42", "lumen-demo", "r1", "lot-20260830", table_id="table-2")
+        self.assertNotEqual(base.fingerprint(), other_table.fingerprint())
+
+    def test_ambiguous_slot_rack_or_table_id_is_rejected_even_though_the_field_is_optional(self):
+        self.assertIsNotNone(BoardIdentity("pcb-42", "lumen-demo", "r1", "lot-20260830", slot_id="feeder 3").validation_error())
+        self.assertIsNotNone(BoardIdentity("pcb-42", "lumen-demo", "r1", "lot-20260830", rack_id="rack a").validation_error())
+        self.assertIsNotNone(BoardIdentity("pcb-42", "lumen-demo", "r1", "lot-20260830", table_id="table 1").validation_error())
+
+    def test_simulated_handoff_still_works_end_to_end_with_slot_rack_table_identity(self):
+        identity = BoardIdentity("pcb-42", "lumen-demo", "r1", "lot-20260830", "feeder-3", "rack-a", "table-1")
+        result = simulate_board_handoff(job(), CellState.READY, identity)
+        self.assertTrue(result.allowed)
+        self.assertEqual(len(result.identity_fingerprint or ""), 64)
+
     def test_handoff_evidence_has_a_schema_and_excludes_raw_identity(self):
         identity = BoardIdentity("pcb-42", "lumen-demo", "r1", "lot-20260830")
         result = simulate_board_handoff(job(JobPhase.LOAD), CellState.READY, identity)
@@ -217,6 +254,35 @@ class BoardFlowTests(unittest.TestCase):
         self.assertEqual(evidence["mode"], "simulation-only")
         self.assertNotIn("PCB-42", output)
         self.assertNotIn("LUMEN-DEMO", output)
+
+    def test_simulate_handoff_cli_accepts_optional_slot_rack_table_without_leaking_them(self):
+        root = Path(__file__).resolve().parent.parent
+        environment = os.environ.copy()
+        environment["HYDRA_UMC_SDK_ROOT"] = str(root.parent / "HYDRA-UMC-SDK")
+        command = [
+            sys.executable,
+            str(root / "tools" / "simulate_handoff.py"),
+            "--board-id", "PCB-42",
+            "--recipe-id", "LUMEN-DEMO",
+            "--revision", "R1",
+            "--lot-id", "LOT-20260830",
+            "--slot-id", "FEEDER-3",
+            "--rack-id", "RACK-A",
+            "--table-id", "TABLE-1",
+        ]
+        output = subprocess.run(
+            command,
+            check=True,
+            capture_output=True,
+            cwd=root,
+            encoding="utf-8",
+            env=environment,
+        ).stdout
+        evidence = json.loads(output)
+        self.assertEqual(evidence["mode"], "simulation-only")
+        self.assertEqual(len(evidence["identity_fingerprint"] or ""), 64)
+        for leaked in ("PCB-42", "LUMEN-DEMO", "FEEDER-3", "RACK-A", "TABLE-1"):
+            self.assertNotIn(leaked, output)
 
     def test_openpnp_menu_script_remains_read_only(self):
         script_path = (

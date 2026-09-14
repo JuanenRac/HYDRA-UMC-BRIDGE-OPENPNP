@@ -22,7 +22,7 @@ GPL-3.0-or-later - see LICENSE
 
 ---
 
-> **誠実性チェック - 今日実際に動くもの:** 追跡可能なボードフローコアと安全ゲート（`board_flow.py` の `BoardFlow`。すべてのジョブは `HYDRA-UMC-SDK` 自身の本物の `evaluate_job()` を通過する）、読み取り専用の OpenPnP プロファイル検査器（`configuration.py`）、トレース専用の受け渡し/サイクルシミュレータ（`handoff.py`、`evidence.py`）、および MQTT エビデンス/状態トランスポート（`mqtt_transport.py`）は本物であり、33件の通過する `unittest` ケースで検証されている（`python tools/build_test.py` - `test_board_flow.py`、`test_mqtt_transport.py`）。これらはいずれも OpenPnP、実際のマシン接続、あるいは本物の MQTT ブローカーを一度も開いたことがない - `test_mqtt_transport.py` は模擬ブローカークライアントを使用し、`configuration.py` は保存済みの `machine.xml` ファイルを解析するだけであり、`handoff.py`/`evidence.py` のシミュレータは明示的にローカル限定で、OpenPnP・シリアル・マシンの I/O は一切ない。OpenPnP の拡張機能・API とのライブ統合はまだ存在しない - 詳細は下記の「現状と次のステップ」に既に明記されており、これまでに実際に出荷された内容は `CHANGELOG.md` を参照。
+> **誠実性チェック - 今日実際に動くもの:** 追跡可能なボードフローコアと安全ゲート（`board_flow.py` の `BoardFlow`。すべてのジョブは `HYDRA-UMC-SDK` 自身の本物の `evaluate_job()` を通過する）、読み取り専用の OpenPnP プロファイル検査器（`configuration.py`）、トレース専用の受け渡し/サイクルシミュレータ（`handoff.py`、`evidence.py`）、および MQTT エビデンス/状態トランスポート（`mqtt_transport.py`）は本物であり、40件の通過する `unittest` ケースで検証されている（`python tools/build_test.py` - `test_board_flow.py`、`test_mqtt_transport.py`）。これらはいずれも OpenPnP、実際のマシン接続、あるいは本物の MQTT ブローカーを一度も開いたことがない - `test_mqtt_transport.py` は模擬ブローカークライアントを使用し、`configuration.py` は保存済みの `machine.xml` ファイルを解析するだけであり、`handoff.py`/`evidence.py` のシミュレータは明示的にローカル限定で、OpenPnP・シリアル・マシンの I/O は一切ない。OpenPnP の拡張機能・API とのライブ統合はまだ存在しない - 詳細は下記の「現状と次のステップ」に既に明記されており、これまでに実際に出荷された内容は `CHANGELOG.md` を参照。
 
 ---
 
@@ -38,7 +38,7 @@ GPL-3.0-or-later - see LICENSE
 * ✅ **実在する共有安全ゲート:** 有効なジョブはすべて `HYDRA-UMC-SDK` の `bridge_contract` にある `evaluate_job()` を通じて評価される。これは他のすべての兄弟ブリッジとHYDRA-UMC-SERVERが使うのと同じゲートである。実際の受け渡しが進むのは、外部機械が `IDLE` を報告し、HYDRA-UMCセルが `READY` である場合のみである。*(実装済み)*
 * ✅ **非破壊的なビルド/テスト:** `build-test.bat`/`.sh` はソースをコンパイルし、バージョンファイルやCHANGELOGに一切触れずにボード追跡性とフェイルセーフのテストスイートを実行する。*(実装済み、下記「ビルドと実行」を参照)*
 * ✅ **読み取り専用のOpenPnPプロファイル検査:** `inspect_openpnp_config.py` は保存済みの `machine.xml` を解析し、`openpnp-scripts/HYDRA-UMC/inspect_profile.js` は手動で呼び出す OpenPnP メニュースクリプトのテンプレートである。両者はクラスとコンポーネント数のみを報告し、テンプレートは情報ダイアログに結果を表示する。機械コマンドは一切送信しない。*(実装・テスト済み)*
-* ✅ **追跡専用の受け渡しシミュレーション:** `BoardIdentity` は `simulate_board_handoff()` が共有 SDK ゲートを適用する前に基板、レシピ、リビジョン、ロットの識別子を束ねる。許可された計画に対してのみ決定論的な SHA-256 追跡指紋を出力し、OpenPnP、シリアル、機械 I/O は一切持たない。*(実装・テスト済み)*
+* ✅ **追跡専用の受け渡しシミュレーション:** `BoardIdentity` は `simulate_board_handoff()` が共有 SDK ゲートを適用する前に基板、レシピ、リビジョン、ロットの識別子を束ねる。許可された計画に対してのみ決定論的な SHA-256 追跡指紋を出力し、OpenPnP、シリアル、機械 I/O は一切持たない。オプションの `slot_id`/`rack_id`/`table_id` フィールドは、この受け渡しが実際に使用したフィーダースロット・保管ラック・テーブルという実際の物理的な配置を、それ自体独立した識別情報として追跡する——これにより同じ基板の2つの異なる配置が指紋上で区別できなくなることはない。*(実装・テスト済み)*
 * ✅ **追跡専用の生産サイクルシミュレーション:** `simulate_board_cycle()` は明示的なセル/機械状態で、順序付けられた `PREPARE → LOAD → PROCESS → UNLOAD → COMPLETE` を評価する。各生産ステップは `READY/IDLE` 以外では安全に拒否され、`ABORT` は SDK の安全経路で独立したままである。*(実装・テスト済み)*
 * ✅ **決定論的エビデンス契約:** `docs/HANDOFF_EVIDENCE.md` は両シミュレーターが出力するスキーマ `1.0` を定義する。フェーズ、判断、理由、許可された識別子指紋のみを含み、生の基板、レシピ、リビジョン、ロット値は JSON レコードに一切入らない。*(実装・テスト済み)*
 
@@ -126,7 +126,7 @@ bash build.sh
 
 ## ✅ 現状と次のステップ
 
-**現時点で実在するもの:** バージョン `0.1.2`。ローカルでテスト済みの追跡可能なPCB受け渡しコア(`BoardFlow`)が `HYDRA-UMC-SDK` の共有ジョブゲートの上に構築されており、実際の MQTT エビデンス/状態トランスポート(`mqtt_transport.py`)、33件の決定論的な `unittest` スイート、ヘッド/カメラ/ドライバー/フィーダーの数とともに実際の OpenPnP アクチュエータ/シグナラー/ノズルチップの証拠を報告する保存済みプロファイル検査器、可視の手動読み取り専用 OpenPnP メニューテンプレート、識別子結合の受け渡し/サイクルシミュレーション、機械 I/O のない CI 検証済み非機密 JSON エビデンス契約を備える。
+**現時点で実在するもの:** バージョン `0.1.3`。ローカルでテスト済みの追跡可能なPCB受け渡しコア(`BoardFlow`)が `HYDRA-UMC-SDK` の共有ジョブゲートの上に構築されており、実際の MQTT エビデンス/状態トランスポート(`mqtt_transport.py`)、40件の決定論的な `unittest` スイート、ヘッド/カメラ/ドライバー/フィーダーの数とともに実際の OpenPnP アクチュエータ/シグナラー/ノズルチップの証拠を報告する保存済みプロファイル検査器、可視の手動読み取り専用 OpenPnP メニューテンプレート、識別子結合の受け渡し/サイクルシミュレーション、機械 I/O のない CI 検証済み非機密 JSON エビデンス契約を備える。
 
 **統合境界:** OpenPnPは常に実装キネマティクス、フィーダー制御、生の動作を保持する。このブリッジがゲート・追跡するのはあくまでその周りの*受け渡し*のみである —— ロボットによる搭載、ネイティブ実装の完了、ロボットによる取り出し。
 

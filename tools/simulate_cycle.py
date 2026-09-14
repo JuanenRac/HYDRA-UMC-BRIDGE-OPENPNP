@@ -31,6 +31,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--recipe-id", required=True)
     parser.add_argument("--revision", required=True)
     parser.add_argument("--lot-id", required=True)
+    # I46: optional real physical-placement identity - see handoff.py's
+    # own BoardIdentity header comment for why these are separate from
+    # board_id and never required.
+    parser.add_argument("--slot-id", default="")
+    parser.add_argument("--rack-id", default="")
+    parser.add_argument("--table-id", default="")
     parser.add_argument("--cell-state", choices=[state.value for state in CellState], default=CellState.READY.value)
     parser.add_argument("--machine-state", choices=[state.value for state in MachineState], default=MachineState.IDLE.value)
     return parser.parse_args()
@@ -40,7 +46,7 @@ def main() -> int:
     """Print the ordered local result and fail nonzero if any phase is denied."""
 
     args = parse_args()
-    identity = BoardIdentity(args.board_id, args.recipe_id, args.revision, args.lot_id)
+    identity = BoardIdentity(args.board_id, args.recipe_id, args.revision, args.lot_id, args.slot_id, args.rack_id, args.table_id)
     result = simulate_board_cycle(CellState(args.cell_state), MachineState(args.machine_state), identity)
     payload = {
         "allowed": result.allowed,
