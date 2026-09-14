@@ -30,6 +30,26 @@ GPL-3.0-or-later - see LICENSE
   handles a later mid-session drop on its own - only the first connect
   needed this.
 
+## [0.1.3]
+
+- **I46: `BoardIdentity` now tracks real, separate slot/rack/table
+  identity.** `BoardFlow.plan()` and `BoardIdentity` only ever validated
+  `board_id` - two different physical placements of the exact same
+  board (recipe/revision/lot unchanged) were fingerprinted identically,
+  discarding real traceability information. New optional fields
+  `slot_id`/`rack_id`/`table_id` (default `""` = not tracked, so every
+  existing caller keeps working unchanged) record which feeder slot,
+  storage rack and placement table an exact hand-off actually used,
+  feeding into `fingerprint()` the same way the other four fields
+  already do - each still validated by the same stable-identifier shape
+  when supplied, and never exposed raw in `HandoffEvidence` (only the
+  opaque fingerprint changes). `tools/simulate_handoff.py`/
+  `simulate_cycle.py` gain matching optional `--slot-id`/`--rack-id`/
+  `--table-id` flags. 7 new tests in `tests/test_board_flow.py`
+  (40 total), confirmed via a real git-stash-based regression check that
+  they fail against the pre-fix source. README x7 synced (test count and
+  feature description).
+
 ## [0.1.2] - V07-014: the SDK's own real phase-construction rejection reached this bridge's test suite
 
 A second, closer review found this bridge's own

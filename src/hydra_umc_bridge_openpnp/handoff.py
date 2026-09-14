@@ -31,6 +31,16 @@ class BoardIdentity:
     recipe_id: str
     revision: str
     lot_id: str
+    # I46: real, separate physical-placement identity - which PnP feeder
+    # slot, storage rack, and placement table this exact hand-off actually
+    # used. Before this, the SAME board_id/recipe_id/revision/lot_id handed
+    # off through two DIFFERENT physical placements produced an identical
+    # fingerprint - real traceability information the identity simply
+    # discarded. Optional ("" = not tracked), so every existing caller
+    # that only ever passed the first four fields keeps working unchanged.
+    slot_id: str = ""
+    rack_id: str = ""
+    table_id: str = ""
 
     def validation_error(self) -> str | None:
         """Return a fail-closed validation error, never normalizing identity."""
@@ -43,12 +53,34 @@ class BoardIdentity:
         ):
             if not isinstance(value, str) or not _IDENTIFIER.fullmatch(value):
                 return f"{field_name} must be a stable identifier using letters, digits, dot, dash or underscore"
+        # slot_id/rack_id/table_id are optional, unlike the four fields
+        # above - but a caller that DOES supply one must still meet the
+        # same stable-identifier shape, or a sloppy value here would
+        # silently weaken the fingerprint's own real distinguishing power
+        # between two different physical placements.
+        for field_name, value in (
+            ("slot_id", self.slot_id),
+            ("rack_id", self.rack_id),
+            ("table_id", self.table_id),
+        ):
+            if not isinstance(value, str):
+                return f"{field_name} must be a string"
+            if value and not _IDENTIFIER.fullmatch(value):
+                return f"{field_name} must be empty or a stable identifier using letters, digits, dot, dash or underscore"
         return None
 
     def fingerprint(self) -> str:
         """Return a deterministic digest without exposing the identifiers."""
 
-        canonical = "\0".join((self.board_id, self.recipe_id, self.revision, self.lot_id))
+        canonical = "\0".join((
+            self.board_id,
+            self.recipe_id,
+            self.revision,
+            self.lot_id,
+            self.slot_id,
+            self.rack_id,
+            self.table_id,
+        ))
         return sha256(canonical.encode("utf-8")).hexdigest()
 
 
