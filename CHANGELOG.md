@@ -1,6 +1,6 @@
 <!-- =============================================================================
 HYDRA-UMC-BRIDGE-OPENPNP - Change history
-Copyright (C) 2026 JuanenRac (Electro Hobby 3D) <electrohobby3d@gmail.com>
+Copyright (C) JuanenRac (Electro Hobby 3D) <electrohobby3d@gmail.com>
 GPL-3.0-or-later - see LICENSE
 ============================================================================= -->
 
@@ -32,7 +32,7 @@ GPL-3.0-or-later - see LICENSE
 
 ## [0.1.3]
 
-- **I46: `BoardIdentity` now tracks real, separate slot/rack/table
+- **`BoardIdentity` now tracks real, separate slot/rack/table
   identity.** `BoardFlow.plan()` and `BoardIdentity` only ever validated
   `board_id` - two different physical placements of the exact same
   board (recipe/revision/lot unchanged) were fingerprinted identically,
@@ -50,12 +50,12 @@ GPL-3.0-or-later - see LICENSE
   they fail against the pre-fix source. README x7 synced (test count and
   feature description).
 
-## [0.1.2] - V07-014: the SDK's own real phase-construction rejection reached this bridge's test suite
+## [0.1.2] - The SDK's own real phase-construction rejection reached this bridge's test suite
 
 A second, closer review found this bridge's own
 `test_a_phase_unknown_to_this_bridge_fails_safe_instead_of_crashing`
 still constructed a `BridgeJob` directly with a raw `"SOME_FUTURE_PHASE"`
-string - HYDRA-UMC-SDK's own real fix (REV-008) now rejects that AT
+string - HYDRA-UMC-SDK's own real fix now rejects that AT
 CONSTRUCTION TIME, so the test never even reached `BoardFlow.plan()`'s
 own assertion. Split in two, same as HYDRA-UMC-BRIDGE-UAV's own
 already-updated test: a new
