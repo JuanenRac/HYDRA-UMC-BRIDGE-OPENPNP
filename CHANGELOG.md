@@ -6,7 +6,7 @@ GPL-3.0-or-later - see LICENSE
 
 # Changelog
 
-## [Unreleased]
+## [0.1.4] - MQTT connect retries with backoff; bump script no longer embeds a literal date
 
 - **`tools/bump_version.py`** - its own auto-generated CHANGELOG
   heading embedded a literal calendar date (`date.today().isoformat()`)
