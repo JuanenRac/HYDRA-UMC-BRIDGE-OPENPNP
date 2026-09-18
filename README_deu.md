@@ -1,6 +1,6 @@
 <!-- =============================================================================
 HYDRA-UMC-BRIDGE-OPENPNP - OpenPnP-Board-Flow-Brücke
-Copyright (C) 2026 JuanenRac (Electro Hobby 3D) <electrohobby3d@gmail.com>
+Copyright (C) JuanenRac (Electro Hobby 3D) <electrohobby3d@gmail.com>
 GPL-3.0-or-later - see LICENSE
 ============================================================================= -->
 
@@ -120,7 +120,7 @@ bash build-test.sh
 bash build.sh
 ```
 
-`build-test` kompiliert jedes Modul unter `src/` mit `py_compile` und führt die vollständige `unittest`-Suite aus (`tests/test_board_flow.py`), was die Ablehnung wegen Board-Rückverfolgbarkeit und das Ausfallsicherheitsgatter belegt — es ändert das Repository nie. `build` führt zuerst dieselbe Validierung aus und ruft nur bei Erfolg `tools/bump_version.py` auf, um die Version in `pyproject.toml`, `hydra-umc.project.json` und `CHANGELOG.md` zu synchronisieren. Es gibt noch keinen echten Maschinen-`run`-Befehl — dafür ist eine validierte OpenPnP-Integration erforderlich.
+`build-test` kompiliert jedes Modul unter `src/` mit `py_compile` und führt die vollständige, unter `tests/` entdeckte `unittest`-Suite aus (`test_board_flow.py`, `test_mqtt_transport.py` - 40 Tests), was unter anderem die Ablehnung wegen Board-Rückverfolgbarkeit und das Ausfallsicherheitsgatter belegt — es ändert das Repository nie. `build` führt zuerst dieselbe Validierung aus und ruft nur bei Erfolg `tools/bump_version.py` auf, um die Version in `pyproject.toml`, `hydra-umc.project.json` und `CHANGELOG.md` zu synchronisieren. Es gibt noch keinen echten Maschinen-`run`-Befehl — dafür ist eine validierte OpenPnP-Integration erforderlich.
 
 ---
 
