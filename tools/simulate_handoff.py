@@ -31,7 +31,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--recipe-id", required=True)
     parser.add_argument("--revision", required=True)
     parser.add_argument("--lot-id", required=True)
-    # I46: optional real physical-placement identity - see handoff.py's
+    # optional real physical-placement identity - see handoff.py's
     # own BoardIdentity header comment for why these are separate from
     # board_id and never required.
     parser.add_argument("--slot-id", default="")

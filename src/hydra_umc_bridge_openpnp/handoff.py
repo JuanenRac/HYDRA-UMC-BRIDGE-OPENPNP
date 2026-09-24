@@ -31,7 +31,7 @@ class BoardIdentity:
     recipe_id: str
     revision: str
     lot_id: str
-    # I46: real, separate physical-placement identity - which PnP feeder
+    # real, separate physical-placement identity - which PnP feeder
     # slot, storage rack, and placement table this exact hand-off actually
     # used. Before this, the SAME board_id/recipe_id/revision/lot_id handed
     # off through two DIFFERENT physical placements produced an identical

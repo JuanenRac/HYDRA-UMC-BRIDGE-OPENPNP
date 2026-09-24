@@ -40,9 +40,9 @@ class BoardFlowTests(unittest.TestCase):
     def test_placement_is_denied_while_machine_is_running(self):
         self.assertFalse(BoardFlow().plan(job(JobPhase.PROCESS, MachineState.RUNNING), CellState.READY, "pcb-42").allowed)
 
-    # V07-014 (P2, shared
+    # (P2, shared
     # with BRIDGE-AMR/BRIDGE-DROIDS/BRIDGE-ROS2): HYDRA-UMC-SDK's own
-    # real fix (REV-008) now rejects an unrecognised `phase` AT
+    # real fix now rejects an unrecognised `phase` AT
     # CONSTRUCTION TIME (`BridgeJob.__post_init__` requires a real
     # `JobPhase` member) - the old reproduction below (a real BridgeJob
     # built with a raw string phase) is no longer possible through the
@@ -170,7 +170,7 @@ class BoardFlowTests(unittest.TestCase):
         self.assertTrue(all(not step.allowed for step in cycle.steps))
         self.assertTrue(all(step.identity_fingerprint is None for step in cycle.steps))
 
-    # I46: slot_id/rack_id/table_id are a real, separate physical-placement
+    # slot_id/rack_id/table_id are a real, separate physical-placement
     # identity - board_id/recipe_id/revision/lot_id alone cannot tell two
     # different physical placements of the exact same board apart.
     def test_default_slot_rack_table_are_empty_and_match_explicit_empty_strings(self):
