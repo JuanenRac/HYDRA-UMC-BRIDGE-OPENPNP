@@ -43,6 +43,7 @@ from dataclasses import asdict
 from typing import Callable
 
 from hydra_umc_sdk.bridge_contract import BridgeError, CellState, job_from_dict
+from hydra_umc_sdk.job_intake import IdempotencyStore
 
 from .board_flow import BoardFlow
 from .handoff import BoardIdentity, simulate_board_handoff
@@ -73,17 +74,22 @@ class MqttPublish:
 class OpenPnpMqttBridge:
     """Real (simulation-only) command dispatch for this bridge's MQTT topics."""
 
-    def __init__(self, cell_state: Callable[[], CellState]) -> None:
+    def __init__(self, cell_state: Callable[[], CellState], idempotency: IdempotencyStore | None = None) -> None:
         self._cell_state = cell_state
         self._board_flow = BoardFlow()
+        # docs/BRIDGE_CONTRACT.md: the idempotency key of a job is handled once; a repeat gets the answer that was given, nothing is run again
+        self._idempotency = idempotency
 
-    def handle_message(self, topic: str, payload: bytes) -> list[MqttPublish]:
+    def handle_message(self, topic: str, payload: bytes, retained: bool = False) -> list[MqttPublish]:
         """Route one real inbound MQTT message. An unrecognised `cmd/`
         sub-topic (this bridge subscribes to `cmd/#`, a wildcard) is
         silently ignored, never an error - a future sibling topic this
-        version does not know about yet must never crash the message loop."""
+        version does not know about yet must never crash the message loop.
 
-        if not topic.startswith(TOPIC_PREFIX):
+        A RETAINED message is ignored: the broker replays it at every
+        reconnect, so acting on it would repeat a command nobody sent again."""
+
+        if retained or not topic.startswith(TOPIC_PREFIX):
             return []
         suffix = topic[len(TOPIC_PREFIX) :]
 
@@ -103,8 +109,11 @@ class OpenPnpMqttBridge:
         except (json.JSONDecodeError, BridgeError, UnicodeDecodeError) as error:
             decision = {"allowed": False, "handoff": "none", "reason": f"malformed job payload: {error}"}
             return MqttPublish(result_topic, json.dumps(decision))
+        repeat = self._repeat(job.idempotency_key, result_topic)
+        if repeat is not None:
+            return repeat
         decision = self._board_flow.plan(job, self._cell_state(), board_id)
-        return MqttPublish(result_topic, json.dumps(asdict(decision)))
+        return self._answer(job.idempotency_key, MqttPublish(result_topic, json.dumps(asdict(decision))))
 
     def _handle_handoff(self, payload: bytes) -> MqttPublish:
         result_topic = f"{TOPIC_PREFIX}cmd/handoff/result"
@@ -129,8 +138,25 @@ class OpenPnpMqttBridge:
                 "mode": "simulation-only",
             }
             return MqttPublish(result_topic, json.dumps(result))
+        repeat = self._repeat(job.idempotency_key, result_topic)
+        if repeat is not None:
+            return repeat
         result = simulate_board_handoff(job, self._cell_state(), identity)
-        return MqttPublish(result_topic, json.dumps(asdict(result)))
+        return self._answer(job.idempotency_key, MqttPublish(result_topic, json.dumps(asdict(result))))
+
+    def _repeat(self, key: str, result_topic: str) -> MqttPublish | None:
+        """None when this key is new (it is claimed now); otherwise the answer given the first time, which is sent again instead of running the job a second time."""
+        if self._idempotency is None or self._idempotency.claim(key):
+            return None
+        stored = self._idempotency.recall(key)
+        if stored is None:
+            stored = json.dumps({"allowed": False, "handoff": "none", "reason": "this idempotency_key was already handled"})
+        return MqttPublish(result_topic, stored)
+
+    def _answer(self, key: str, publish: MqttPublish) -> MqttPublish:
+        if self._idempotency is not None:
+            self._idempotency.remember(key, publish.payload)
+        return publish
 
 
 def connect_with_retry(
@@ -190,7 +216,7 @@ def run_forever(
         client.subscribe(f"{TOPIC_PREFIX}cmd/#")  # type: ignore[attr-defined]
 
     def on_message(client: object, userdata: object, message: object) -> None:
-        for publish in bridge.handle_message(message.topic, message.payload):  # type: ignore[attr-defined]
+        for publish in bridge.handle_message(message.topic, message.payload, retained=bool(getattr(message, "retain", False))):  # type: ignore[attr-defined]
             client.publish(publish.topic, publish.payload, retain=publish.retain)  # type: ignore[attr-defined]
 
     client = mqtt.Client(client_id=client_id)

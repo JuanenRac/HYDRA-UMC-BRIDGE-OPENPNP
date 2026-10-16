@@ -6,6 +6,12 @@ GPL-3.0-or-later - see LICENSE
 
 # Changelog
 
+## [0.1.5] - Retained messages are ignored and a repeated idempotency key is answered once
+
+- **Retained messages.** `OpenPnpMqttBridge.handle_message()` takes the retain flag of the message and ignores a retained one: the broker replays it at every reconnect, so acting on it repeated a command nobody had sent again (the CNC, laser and printer bridges already did this; the OpenPnP bridge had not got the fix).
+- **Idempotency keys.** The bridge accepts an `IdempotencyStore` from HYDRA-UMC-SDK: the first time a job key arrives it is evaluated and its answer kept; a repeat (QoS 1 delivers some twice, a client may retry) gets the same answer and nothing is evaluated again. docs/BRIDGE_CONTRACT.md asked bridges to do this and none did. A malformed job does not use up a key.
+- Tests for retained messages and repeated keys (tests/test_idempotency.py).
+
 ## [0.1.4] - MQTT connect retries with backoff; bump script no longer embeds a literal date
 
 - **`tools/bump_version.py`** - its own auto-generated CHANGELOG

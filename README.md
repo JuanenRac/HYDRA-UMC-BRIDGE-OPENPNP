@@ -10,7 +10,7 @@ GPL-3.0-or-later - see LICENSE
 
 # 🎯 HYDRA-UMC-BRIDGE-OPENPNP
 
-<p align="center">🇺🇸 <b>English</b> | <a href="README_spa.md">🇪🇸 Español</a> | <a href="README_fra.md">🇫🇷 Français</a> | <a href="README_ita.md">🇮🇹 Italiano</a> | <a href="README_deu.md">🇩🇪 Deutsch</a> | <a href="README_zho.md">🇨🇳 简体中文</a> | <a href="README_jpn.md">🇯🇵 日本語</a></p>
+<p align="center">🇺🇸 <b>English</b> | <a href="README_spa.md">🇪🇸 Español</a> | <a href="README_fra.md">🇫🇷 Français</a> | <a href="README_ita.md">🇮🇹 Italiano</a> | <a href="README_deu.md">🇩🇪 Deutsch</a> | <a href="README_zho.md">🇨🇳 简体中文</a> | <a href="README_jpn.md">🇯🇵 日本語</a> | <a href="README_por.md">🇵🇹 Português</a></p>
 
 ### 📋 Traceable Board-Flow Coordination Bridge for OpenPnP
 
@@ -22,7 +22,7 @@ GPL-3.0-or-later - see LICENSE
 
 ---
 
-> **Honesty check - what actually runs today:** the traceable board-flow core and safety gate (`board_flow.py`'s `BoardFlow`, funneling every job through `HYDRA-UMC-SDK`'s own `evaluate_job()`), the read-only OpenPnP profile inspector (`configuration.py`), the trace-only hand-off/cycle simulators (`handoff.py`, `evidence.py`), and the MQTT evidence/status transport (`mqtt_transport.py`) are real and covered by 40 passing `unittest` cases (`python tools/build_test.py` - `test_board_flow.py`, `test_mqtt_transport.py`). None of it has ever opened OpenPnP, a real machine link, or a real MQTT broker - `test_mqtt_transport.py` uses a fake broker client, `configuration.py` only ever parses a saved `machine.xml` file, and `handoff.py`/`evidence.py`'s simulators are explicitly local-only with no OpenPnP, serial or machine I/O. There is no live OpenPnP extension/API integration yet - see "Current Status & Next Steps" below, which already says this plainly, and `CHANGELOG.md` for exactly what has shipped so far.
+> **Honesty check - what actually runs today:** the traceable board-flow core and safety gate (`board_flow.py`'s `BoardFlow`, funneling every job through `HYDRA-UMC-SDK`'s own `evaluate_job()`), the read-only OpenPnP profile inspector (`configuration.py`), the trace-only hand-off/cycle simulators (`handoff.py`, `evidence.py`), and the MQTT evidence/status transport (`mqtt_transport.py`) are real and covered by 46 passing `unittest` cases (`python tools/build_test.py` - `test_board_flow.py`, `test_mqtt_transport.py`). None of it has ever opened OpenPnP, a real machine link, or a real MQTT broker - `test_mqtt_transport.py` uses a fake broker client, `configuration.py` only ever parses a saved `machine.xml` file, and `handoff.py`/`evidence.py`'s simulators are explicitly local-only with no OpenPnP, serial or machine I/O. There is no live OpenPnP extension/API integration yet - see "Current Status & Next Steps" below, which already says this plainly, and `CHANGELOG.md` for exactly what has shipped so far.
 
 ---
 
@@ -41,6 +41,7 @@ It belongs to the **External Automation Bridges** family: a set of sibling repos
 * ✅ **Trace-only hand-off simulation:** `BoardIdentity` binds board, recipe, revision and lot identifiers before `simulate_board_handoff()` applies the shared SDK gate; it emits a deterministic SHA-256 trace fingerprint only for an allowed plan and has no OpenPnP, serial or machine I/O. Optional `slot_id`/`rack_id`/`table_id` fields track the real physical placement (which feeder slot, storage rack and table this exact hand-off used) as its own separate identity, so two placements of the same board are never fingerprinted as indistinguishable. *(implemented, tested)*
 * ✅ **Trace-only productive-cycle simulation:** `simulate_board_cycle()` evaluates the ordered `PREPARE → LOAD → PROCESS → UNLOAD → COMPLETE` sequence under one explicit cell/machine state; every productive step fails closed outside `READY/IDLE`, and `ABORT` remains separate in the SDK safety path. *(implemented, tested)*
 * ✅ **Deterministic evidence contract:** `docs/HANDOFF_EVIDENCE.md` defines schema `1.0` emitted by both simulators. It carries only phase, decision, reason and a permitted identity fingerprint; raw board, recipe, revision and lot values never enter the JSON record. *(implemented, tested)*
+* ✅ **Retained messages and repeated keys:** `mqtt_transport.py` ignores retained messages (the broker replays them at every reconnect) and, given an `IdempotencyStore`, answers a repeated `idempotency_key` with the answer it gave the first time instead of evaluating the job again. *(implemented, tested in `tests/test_idempotency.py`)*
 
 ---
 
@@ -101,7 +102,7 @@ HYDRA-UMC-BRIDGE-OPENPNP/
 ├── CHANGELOG.md
 ├── CODE_OF_CONDUCT.md / CONTRIBUTING.md / SECURITY.md / SUPPORT.md
 ├── LICENSE / LICENSE.md
-└── README.md / README_*.md      # This file and its 6 translations
+└── README.md / README_*.md      # This file and its 7 translations
 ```
 
 ---
@@ -120,13 +121,13 @@ bash build-test.sh
 bash build.sh
 ```
 
-`build-test` compiles every module under `src/` with `py_compile` and runs the full `unittest` suite discovered under `tests/` (`test_board_flow.py`, `test_mqtt_transport.py` - 40 tests), proving board-traceability rejection and fail-safe gating among everything else covered — it never modifies the repository. `build` runs that same validation first and, only on success, calls `tools/bump_version.py` to synchronize the version across `pyproject.toml`, `hydra-umc.project.json` and `CHANGELOG.md`. There is no live machine `run` command yet — that requires a validated OpenPnP integration.
+`build-test` compiles every module under `src/` with `py_compile` and runs the full `unittest` suite discovered under `tests/` (`test_board_flow.py`, `test_mqtt_transport.py` - 46 tests), proving board-traceability rejection and fail-safe gating among everything else covered — it never modifies the repository. `build` runs that same validation first and, only on success, calls `tools/bump_version.py` to synchronize the version across `pyproject.toml`, `hydra-umc.project.json` and `CHANGELOG.md`. There is no live machine `run` command yet — that requires a validated OpenPnP integration.
 
 ---
 
 ## ✅ Current Status & Next Steps
 
-**Real today:** version `0.1.4`, a locally tested traceable PCB hand-off core (`BoardFlow`) backed by `HYDRA-UMC-SDK`'s shared job gate, a real MQTT evidence/status transport (`mqtt_transport.py`), a deterministic forty-test `unittest` suite, a saved-profile inspector reporting real OpenPnP actuator/signaler/nozzle-tip evidence alongside head/camera/driver/feeder counts, a visible read-only OpenPnP menu-script template, identity-bound hand-off/cycle simulations, and a CI-verified non-sensitive JSON evidence contract with no machine I/O.
+**Real today:** version `0.1.5`, a locally tested traceable PCB hand-off core (`BoardFlow`) backed by `HYDRA-UMC-SDK`'s shared job gate, a real MQTT evidence/status transport (`mqtt_transport.py`), a deterministic forty-six-test `unittest` suite, a saved-profile inspector reporting real OpenPnP actuator/signaler/nozzle-tip evidence alongside head/camera/driver/feeder counts, a visible read-only OpenPnP menu-script template, identity-bound hand-off/cycle simulations, and a CI-verified non-sensitive JSON evidence contract with no machine I/O.
 
 **Integration boundary:** OpenPnP retains placement kinematics, feeder control and raw motion at all times; this bridge only ever gates and traces the *hand-off* around it — robot loading, native placement completion, robot unloading.
 
