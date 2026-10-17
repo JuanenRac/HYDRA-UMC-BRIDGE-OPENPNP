@@ -44,6 +44,7 @@ from typing import Callable
 
 from hydra_umc_sdk.bridge_contract import BridgeError, CellState, job_from_dict
 from hydra_umc_sdk.job_intake import IdempotencyStore
+from hydra_umc_sdk.mqtt_connection import apply_connection_settings, settings_from_env
 
 from .board_flow import BoardFlow
 from .handoff import BoardIdentity, simulate_board_handoff
@@ -197,12 +198,17 @@ def run_forever(
     *,
     max_connect_attempts: int = 5,
     connect_retry_delay_seconds: float = 2.0,
+    username: str | None = None,
+    password: str | None = None,
 ) -> None:
     """Connect to a real HYDRA-UMC-MQTT-BROKER and dispatch forever.
 
     The only place this module imports paho-mqtt - lazily, so the rest of
     this module (and every test) works on a host without it installed.
     """
+
+    if password is not None and username is None:
+        raise ValueError("password was given without a username - MQTT credentials need both")
 
     try:
         import paho.mqtt.client as mqtt  # type: ignore[import-untyped]
@@ -220,6 +226,8 @@ def run_forever(
             client.publish(publish.topic, publish.payload, retain=publish.retain)  # type: ignore[attr-defined]
 
     client = mqtt.Client(client_id=client_id)
+    # the credentials and TLS of this service's environment (HYDRA_MQTT_*), unless the caller gave a user name explicitly
+    apply_connection_settings(client, settings_from_env(), username=username, password=password)
     client.on_connect = on_connect
     client.on_message = on_message
     connect_with_retry(
