@@ -6,6 +6,11 @@ GPL-3.0-or-later - see LICENSE
 
 # Changelog
 
+## [0.1.9]
+
+- Successful incremental build: synchronized package metadata and `hydra-umc.project.json`.
+- The licence is written as GPL-3.0-or-later in every header and in the package metadata.
+
 ## [0.1.8] - Maturity lowered to functional
 - Maturity is functional: the code, tests and documentation are in place, but nothing here has been verified on real hardware yet, so the manifest no longer claims the established level.
 
@@ -19,7 +24,7 @@ GPL-3.0-or-later - see LICENSE
 - **DOCTYPE is refused whatever the encoding.** The check looked for the ASCII bytes `<!DOCTYPE`, which a UTF-16 file does not contain; the parser now refuses a DOCTYPE the moment it starts.
 - **A retained state can be judged.** `availability` is `online` once connected and the broker publishes `offline` (Last Will) when the bridge dies.
 - **paho-mqtt.** The client uses the version 2 callback API, which also starts with paho-mqtt 2.0; the extra now requires `paho-mqtt>=2.1,<3`.
-- The unused `subprocess` import of `tools/ci_validate.py` and the missing `noqa` of `tools/inspect_openpnp_config.py` are fixed; `LICENSE` now carries the complete GPL-3.0 text.
+- The unused `subprocess` import of `tools/ci_validate.py` and the missing `noqa` of `tools/inspect_openpnp_config.py` are fixed; `LICENSE` now carries the complete GPL-3.0-or-later text.
 - README (all eight languages) and `docs/` updated: test counts and test file list, no "status transport" claim (this bridge has no state topic), no HYDRA-UMC-SERVER path that does not exist.
 - 18 new tests (`tests/test_hardening.py`).
 
