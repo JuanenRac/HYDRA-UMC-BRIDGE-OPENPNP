@@ -6,6 +6,20 @@ GPL-3.0-or-later - see LICENSE
 
 # Changelog
 
+## [0.1.7] - One key space per verb, honest job answers and a DOCTYPE check that does not depend on the encoding
+
+- **The hand-off keeps its guarantee.** `cmd/job` and `cmd/handoff` shared one idempotency key space: a job checked with the gate and then handed off with the same key got the gate's stored answer back, without the identity fingerprint and without `"mode": "simulation-only"`. Keys are now `job:<key>` and `handoff:<key>`.
+- **`cmd/job` says what it is.** The bridge does not observe OpenPnP: the machine state is whatever the requester declares. The result now carries `"mode": "simulation-only"` and `"observed": false`; an `ABORT` says `"forwarded": false` and that nothing was stopped.
+- **The loop survives anything a client sends.** Deeply nested JSON, a payload larger than 16 KiB, an unreadable payload and any unexpected failure while handling a message are answered with a refusal on the result topic instead of ending `loop_forever()`. A failure after the key was claimed leaves an explicit answer for the key.
+- **One board identifier rule.** `BoardFlow.plan()` accepted any board id without surrounding spaces (`../x`, `a b`, a thousand characters) while the hand-off trace required `^[A-Za-z0-9][A-Za-z0-9._-]{0,95}$`; a board could pass the gate and not be traceable. Both use the stricter rule now.
+- **Placement identity over MQTT.** `cmd/handoff` reads the optional `slot_id`, `rack_id` and `table_id`, so two hand-offs through different slots no longer share a fingerprint.
+- **DOCTYPE is refused whatever the encoding.** The check looked for the ASCII bytes `<!DOCTYPE`, which a UTF-16 file does not contain; the parser now refuses a DOCTYPE the moment it starts.
+- **A retained state can be judged.** `availability` is `online` once connected and the broker publishes `offline` (Last Will) when the bridge dies.
+- **paho-mqtt.** The client uses the version 2 callback API, which also starts with paho-mqtt 2.0; the extra now requires `paho-mqtt>=2.1,<3`.
+- The unused `subprocess` import of `tools/ci_validate.py` and the missing `noqa` of `tools/inspect_openpnp_config.py` are fixed; `LICENSE` now carries the complete GPL-3.0 text.
+- README (all eight languages) and `docs/` updated: test counts and test file list, no "status transport" claim (this bridge has no state topic), no HYDRA-UMC-SERVER path that does not exist.
+- 18 new tests (`tests/test_hardening.py`).
+
 ## [0.1.6] - Connects to a broker that demands credentials: user, password and TLS from the environment
 
 - The MQTT client now takes its credentials and TLS from the environment of the service (`HYDRA_MQTT_USERNAME`, `HYDRA_MQTT_PASSWORD` or `HYDRA_MQTT_PASSWORD_FILE`, `HYDRA_MQTT_TLS_CA`) through `hydra_umc_sdk.mqtt_connection`, so it can reach a production HYDRA-UMC-MQTT-BROKER, which refuses anonymous clients and evaluates its ACL for the identity of the credential.

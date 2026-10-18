@@ -7,9 +7,15 @@
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 
 from hydra_umc_sdk.bridge_contract import BridgeJob, CellState, GateDecision, JobPhase, evaluate_job
+
+
+# The one rule for a board identifier, used by the gate and by the hand-off trace alike: a board that
+# passes the gate must also be traceable.
+IDENTIFIER = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,95}$")
 
 
 @dataclass(frozen=True)
@@ -32,7 +38,7 @@ class BoardFlow:
     }
 
     def plan(self, job: BridgeJob, cell_state: CellState, board_id: str) -> BoardFlowDecision:
-        if not board_id or board_id.strip() != board_id:
+        if not isinstance(board_id, str) or not IDENTIFIER.fullmatch(board_id):
             return BoardFlowDecision(False, "none", "a stable board_id is required for traceability")
         decision: GateDecision = evaluate_job(job, cell_state)
         # ._handoffs currently covers every JobPhase the shared SDK defines

@@ -20,7 +20,7 @@ sys.path.insert(0, str(ROOT / "src"))
 sdk_root = Path(os.environ.get("HYDRA_UMC_SDK_ROOT", ROOT.parent / "HYDRA-UMC-SDK"))
 sys.path.insert(0, str(sdk_root / "clients" / "python" / "src"))
 
-from hydra_umc_bridge_openpnp import inspect_machine_configuration
+from hydra_umc_bridge_openpnp import inspect_machine_configuration  # noqa: E402
 
 
 def main() -> int:

@@ -13,14 +13,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from hashlib import sha256
-import re
 
 from hydra_umc_sdk.bridge_contract import BridgeJob, CellState, JobPhase, MachineState
 
-from .board_flow import BoardFlow
-
-
-_IDENTIFIER = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,95}$")
+from .board_flow import IDENTIFIER as _IDENTIFIER, BoardFlow
 
 
 @dataclass(frozen=True)

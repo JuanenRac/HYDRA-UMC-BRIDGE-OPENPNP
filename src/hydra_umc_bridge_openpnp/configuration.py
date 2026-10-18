@@ -10,9 +10,38 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 from xml.etree import ElementTree
+from xml.parsers import expat
 
 
 _MAX_CONFIGURATION_BYTES = 4 * 1024 * 1024
+
+
+class _DoctypeRefused(Exception):
+    """Raised from inside the parser the moment a DOCTYPE declaration starts."""
+
+
+def _refuse_doctype(*_: object) -> None:
+    raise _DoctypeRefused()
+
+
+def _parse_without_doctype(raw: bytes) -> ElementTree.Element:
+    """Parse `raw`, refusing any DOCTYPE. The parser itself says when one starts, so a UTF-16 document (whose bytes
+    do not contain the ASCII text `<!DOCTYPE`) is refused as well.
+
+    Plain expat feeding an ElementTree `TreeBuilder`: the C-accelerated `XMLParser` does not expose the expat
+    handlers, and a machine.xml has no use for namespaces, entities or external subsets."""
+    builder = ElementTree.TreeBuilder()
+    parser = expat.ParserCreate()
+    parser.buffer_text = True
+    parser.StartElementHandler = builder.start
+    parser.EndElementHandler = builder.end
+    parser.CharacterDataHandler = builder.data
+    parser.StartDoctypeDeclHandler = _refuse_doctype
+    try:
+        parser.Parse(raw, True)
+    except expat.ExpatError as error:
+        raise ElementTree.ParseError(str(error)) from error
+    return builder.close()
 
 
 @dataclass(frozen=True)
@@ -55,7 +84,9 @@ def inspect_machine_configuration(config_path: str | Path) -> OpenPnpMachineProf
         raw = path.read_bytes()
         if b"<!DOCTYPE" in raw.upper():
             return OpenPnpMachineProfile(False, "OpenPnP configuration declares a prohibited DOCTYPE")
-        root = ElementTree.fromstring(raw)
+        root = _parse_without_doctype(raw)
+    except _DoctypeRefused:
+        return OpenPnpMachineProfile(False, "OpenPnP configuration declares a prohibited DOCTYPE")
     except (ElementTree.ParseError, OSError, TypeError, ValueError) as error:
         return OpenPnpMachineProfile(False, f"OpenPnP configuration unavailable: {error}")
 
