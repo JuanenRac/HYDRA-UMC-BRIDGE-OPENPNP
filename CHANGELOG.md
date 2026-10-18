@@ -6,6 +6,9 @@ GPL-3.0-or-later - see LICENSE
 
 # Changelog
 
+## [0.1.8] - Maturity lowered to functional
+- Maturity is functional: the code, tests and documentation are in place, but nothing here has been verified on real hardware yet, so the manifest no longer claims the established level.
+
 ## [0.1.7] - One key space per verb, honest job answers and a DOCTYPE check that does not depend on the encoding
 
 - **The hand-off keeps its guarantee.** `cmd/job` and `cmd/handoff` shared one idempotency key space: a job checked with the gate and then handed off with the same key got the gate's stored answer back, without the identity fingerprint and without `"mode": "simulation-only"`. Keys are now `job:<key>` and `handoff:<key>`.
