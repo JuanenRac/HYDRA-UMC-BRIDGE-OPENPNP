@@ -10,7 +10,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
-from hydra_umc_sdk.bridge_contract import BridgeJob, CellState, GateDecision, JobPhase, evaluate_job
+from hydra_umc_sdk.bridge_contract import BridgeJob, CellState, GateDecision, JobPhase, MachineState, evaluate_job
 
 
 # The one rule for a board identifier, used by the gate and by the hand-off trace alike: a board that
@@ -37,10 +37,11 @@ class BoardFlow:
         JobPhase.ABORT: "request-controlled-stop",
     }
 
-    def plan(self, job: BridgeJob, cell_state: CellState, board_id: str) -> BoardFlowDecision:
+    def plan(self, job: BridgeJob, cell_state: CellState, board_id: str, machine_state: MachineState | None = None) -> BoardFlowDecision:
+        """`machine_state` is what this bridge READ from OpenPnP, when something reads it. This bridge only simulates the hand-off and reads nothing, so without it the gate uses the claim of the job message, on purpose and openly (its answers say observed=false); the day it reads OpenPnP it passes the reading here and the opt-in goes."""
         if not isinstance(board_id, str) or not IDENTIFIER.fullmatch(board_id):
             return BoardFlowDecision(False, "none", "a stable board_id is required for traceability")
-        decision: GateDecision = evaluate_job(job, cell_state)
+        decision: GateDecision = evaluate_job(job, cell_state, machine_state, allow_unobserved=True)  # simulation-only: nothing here reads OpenPnP, and every answer says observed=false
         # ._handoffs currently covers every JobPhase the shared SDK defines
         # (verified in this project's own tests), but that mapping lives in
         # a SEPARATE repo (HYDRA-UMC-SDK) this bridge doesn't control - a
