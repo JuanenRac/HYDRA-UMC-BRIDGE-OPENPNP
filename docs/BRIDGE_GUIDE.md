@@ -23,7 +23,7 @@ The current inspected format is the public OpenPnP machine configuration XML. Fu
 | Script | Purpose | Changes version/CHANGELOG? |
 |---|---|---|
 | `build-test.bat` / `build-test.sh` | Compile and run configuration, hand-off and evidence tests | No |
-| `build.bat` / `build.sh` | Validate, then increment version and CHANGELOG | Yes, after success |
+| `build.bat` / `build.sh` | Validate, then build (never changes the version or the CHANGELOG) | No |
 
 `HYDRA_UMC_SDK_ROOT` can point to the SDK checkout. The safe workflow is inspect XML, run local simulation, review evidence, then stop; none of these steps prove a machine is ready.
 
