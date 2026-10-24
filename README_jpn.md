@@ -116,25 +116,34 @@ HYDRA-UMC-BRIDGE-OPENPNP/
 │       └── mqtt_transport.py    # 実MQTTブローカー転送 - ここには実際のマシン転送は一切存在しない
 ├── tests/
 │   ├── test_board_flow.py       # ボード追跡性とフェイルセーフのテスト
-│   └── test_mqtt_transport.py   # 疑似ブローカークライアントに対するMQTTコマンド/証拠形状テスト
+│   ├── test_mqtt_transport.py   # 疑似ブローカークライアントに対するMQTTコマンド/証拠形状テスト
 │   ├── test_mqtt_environment.py # サービス環境の MQTT 認証情報と TLS がクライアントに届く
 │   ├── test_observation.py      # 状態ファイルとイベントスクリプト(Node で実行)
 │   ├── test_smema.py            # 模擬の隣接機に対する SMEMA ライン、および MQTT 経由
 │   ├── test_traceability.py     # 基板トレース、DATALAKE サンプル、ローカル HTTP サーバーへの送信
 │   ├── test_board_code.py       # 基板上のコードとジョブの照合、VISION-NODE ソース
-│   └── test_hardening.py        # 悪意あるペイロード、動詞ごとのキー空間、正直な応答
+│   ├── test_hardening.py        # 悪意あるペイロード、動詞ごとのキー空間、正直な応答
+│   ├── openpnp_script_harness.js # OpenPnP の外で OpenPnP スクリプトを実行 (テスト用の補助)
+│   ├── test_edge_cases.py       # ID の境界、設定の解析上の危険、ペイロードの境界ケース
+│   └── test_idempotency.py      # 保持メッセージと繰り返された冪等キー
 ├── tools/
 │   ├── build_test.py            # 非破壊的なコンパイル+テストランナー (build-test.bat/.sh)
 │   ├── bump_version.py          # pyproject.toml、マニフェスト、CHANGELOG.md を同期
 │   ├── ci_validate.py           # 依存関係なし・非破壊のCIベースライン (.github/workflows/ci.yml が使用)
 │   ├── inspect_openpnp_config.py # 保存済みOpenPnP machine.xmlの読み取り専用CLIインスペクター
 │   ├── simulate_cycle.py        # 追跡専用の生産サイクルシミュレーターCLI
-│   └── simulate_handoff.py      # 追跡専用の基板ハンドオフシミュレーターCLI
+│   ├── simulate_handoff.py      # 追跡専用の基板ハンドオフシミュレーターCLI
+│   ├── _doc_policy.py           # ファミリー共通のドキュメント規則 (HYDRA-UMC-SDK のコピーで、同期を維持)
+│   ├── _readme_parity.py        # 8つの README が同じ構造であることの検査 (HYDRA-UMC-SDK のコピーで、同期を維持)
+│   ├── hydra_project_tool.py    # すべてのリポジトリで共通のコマンド: validate、test、ci、version、status、bump
+│   └── extra_build_steps.py     # 共通のビルドテストに加えた、このリポジトリ固有のビルド手順 (独自のユニットテスト)
 ├── docs/
 │   ├── BRIDGE_GUIDE.md          # 適用範囲、対応プラットフォーム、スクリプト、ハードウェア受け入れゲート
 │   └── HANDOFF_EVIDENCE.md      # 何が実際の受け渡し証拠とみなされ、このbridgeが何を推測しないか
 ├── images/
 │   └── HYDRA_UMC_BANNER.svg     # README バナー
+├── openpnp-scripts/         # OpenPnP の Scripts フォルダー用の HYDRA-UMC/ スクリプト: イベントフック (ジョブ、配置、マシン) と状態レポート
+├── inspect-openpnp-config.sh / inspect-openpnp-config.bat # 保存済みの machine.xml の読み取り専用検査 (OpenPnP は起動せず、動作もなし)
 ├── build-test.bat / build-test.sh  # 検証のみ、リポジトリを一切変更しない
 ├── build.bat / build.sh            # 検証後、成功時のみバージョン + CHANGELOG を更新
 ├── pyproject.toml               # パッケージメタデータ。HYDRA-UMC-SDK に依存 (git)

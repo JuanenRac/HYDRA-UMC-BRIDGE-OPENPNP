@@ -116,25 +116,34 @@ HYDRA-UMC-BRIDGE-OPENPNP/
 │       └── mqtt_transport.py    # Real MQTT broker transport - no real machine transport exists here at all
 ├── tests/
 │   ├── test_board_flow.py       # Board traceability and fail-safe tests
-│   └── test_mqtt_transport.py   # MQTT command/evidence shape tests against a fake broker client
+│   ├── test_mqtt_transport.py   # MQTT command/evidence shape tests against a fake broker client
 │   ├── test_mqtt_environment.py # The MQTT credentials and TLS of the service environment reach the client
 │   ├── test_observation.py      # The state file and the event scripts (run in Node)
 │   ├── test_smema.py            # SMEMA lines against a simulated neighbour, and over MQTT
 │   ├── test_traceability.py     # Board traces, DATALAKE samples and sink against a local HTTP server
 │   ├── test_board_code.py       # Code on the board against the job, and the VISION-NODE source
-│   └── test_hardening.py        # Hostile payloads, one key space per verb, honest answers
+│   ├── test_hardening.py        # Hostile payloads, one key space per verb, honest answers
+│   ├── openpnp_script_harness.js # Runs an OpenPnP script outside OpenPnP (test fixture)
+│   ├── test_edge_cases.py       # Identity boundaries, configuration parsing hazards and payload edge cases
+│   └── test_idempotency.py      # Retained messages and repeated idempotency keys
 ├── tools/
 │   ├── build_test.py            # Non-mutating compile + test runner (build-test.bat/.sh)
 │   ├── bump_version.py          # Synchronizes pyproject.toml, manifest and CHANGELOG.md
 │   ├── ci_validate.py           # Dependency-free, non-destructive CI baseline (used by .github/workflows/ci.yml)
 │   ├── inspect_openpnp_config.py # Read-only CLI inspector for a saved OpenPnP machine.xml
 │   ├── simulate_cycle.py        # Trace-only productive-cycle simulator CLI
-│   └── simulate_handoff.py      # Trace-only board hand-off simulator CLI
+│   ├── simulate_handoff.py      # Trace-only board hand-off simulator CLI
+│   ├── _doc_policy.py           # Documentation rules shared by the family (a copy of HYDRA-UMC-SDK's, kept in sync)
+│   ├── _readme_parity.py        # Check that the eight READMEs share one structure (a copy of HYDRA-UMC-SDK's, kept in sync)
+│   ├── hydra_project_tool.py    # The same commands in every repository: validate, test, ci, version, status, bump
+│   └── extra_build_steps.py     # The build steps of this repository beyond the shared build test (its own unit tests)
 ├── docs/
 │   ├── BRIDGE_GUIDE.md          # Scope, compatible platforms, scripts, hardware acceptance gate
 │   └── HANDOFF_EVIDENCE.md      # What counts as real hand-off evidence vs. what this bridge refuses to infer
 ├── images/
 │   └── HYDRA_UMC_BANNER.svg     # README banner
+├── openpnp-scripts/         # HYDRA-UMC/ scripts for OpenPnP's Scripts folder: the event hooks (job, placement, machine) and the state report
+├── inspect-openpnp-config.sh / inspect-openpnp-config.bat # Read-only inspection of a saved machine.xml (no OpenPnP launch, no motion)
 ├── build-test.bat / build-test.sh  # Validate only, never modifies the repository
 ├── build.bat / build.sh            # Validate and build (building never changes the version)
 ├── pyproject.toml               # Package metadata; depends on HYDRA-UMC-SDK (git)

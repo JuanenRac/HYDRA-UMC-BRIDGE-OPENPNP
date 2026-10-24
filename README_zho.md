@@ -116,25 +116,34 @@ HYDRA-UMC-BRIDGE-OPENPNP/
 │       └── mqtt_transport.py    # 真实 MQTT broker 传输 - 这里根本不存在真实的机器传输
 ├── tests/
 │   ├── test_board_flow.py       # 板级可追溯性与故障安全测试
-│   └── test_mqtt_transport.py   # 针对模拟 broker 客户端的 MQTT 命令/证据格式测试
+│   ├── test_mqtt_transport.py   # 针对模拟 broker 客户端的 MQTT 命令/证据格式测试
 │   ├── test_mqtt_environment.py # 服务环境中的 MQTT 凭据和 TLS 会传到客户端
 │   ├── test_observation.py      # 状态文件与事件脚本(在 Node 中运行)
 │   ├── test_smema.py            # 针对模拟邻机的 SMEMA 线路,以及经由 MQTT
 │   ├── test_traceability.py     # 板卡追溯、DATALAKE 样本,以及针对本地 HTTP 服务器的发送
 │   ├── test_board_code.py       # 板上编码与作业的比对,以及 VISION-NODE 来源
-│   └── test_hardening.py        # 恶意负载、按动词区分的键空间、诚实的回复
+│   ├── test_hardening.py        # 恶意负载、按动词区分的键空间、诚实的回复
+│   ├── openpnp_script_harness.js # 在 OpenPnP 之外运行 OpenPnP 脚本 (测试辅助)
+│   ├── test_edge_cases.py       # 标识边界、配置解析隐患和载荷边界情况
+│   └── test_idempotency.py      # 保留消息与重复的幂等键
 ├── tools/
 │   ├── build_test.py            # 非变更式编译 + 测试运行器 (build-test.bat/.sh)
 │   ├── bump_version.py          # 同步 pyproject.toml、清单和 CHANGELOG.md
 │   ├── ci_validate.py           # 无依赖、非破坏性的CI基线检查 (由 .github/workflows/ci.yml 使用)
 │   ├── inspect_openpnp_config.py # 针对已保存的OpenPnP machine.xml的只读CLI检查工具
 │   ├── simulate_cycle.py        # 仅追溯用途的生产周期模拟器CLI
-│   └── simulate_handoff.py      # 仅追溯用途的板卡交接模拟器CLI
+│   ├── simulate_handoff.py      # 仅追溯用途的板卡交接模拟器CLI
+│   ├── _doc_policy.py           # 家族共享的文档规则 (HYDRA-UMC-SDK 的副本,保持同步)
+│   ├── _readme_parity.py        # 检查八个 README 结构一致 (HYDRA-UMC-SDK 的副本,保持同步)
+│   ├── hydra_project_tool.py    # 每个仓库相同的命令: validate、test、ci、version、status、bump
+│   └── extra_build_steps.py     # 除共享构建测试外,本仓库自己的构建步骤 (自带的单元测试)
 ├── docs/
 │   ├── BRIDGE_GUIDE.md          # 范围、兼容平台、脚本、硬件验收门控
 │   └── HANDOFF_EVIDENCE.md      # 什么算作真实交接证据,以及此 bridge 拒绝推断的内容
 ├── images/
 │   └── HYDRA_UMC_BANNER.svg     # README 横幅图
+├── openpnp-scripts/         # 供 OpenPnP 的 Scripts 文件夹使用的 HYDRA-UMC/ 脚本: 事件钩子 (作业、贴装、机器) 与状态报告
+├── inspect-openpnp-config.sh / inspect-openpnp-config.bat # 对已保存的 machine.xml 做只读检查 (不启动 OpenPnP,不产生运动)
 ├── build-test.bat / build-test.sh  # 仅验证,绝不修改仓库
 ├── build.bat / build.sh            # 先验证,成功后才更新版本 + CHANGELOG
 ├── pyproject.toml               # 包元数据;依赖 HYDRA-UMC-SDK (git)

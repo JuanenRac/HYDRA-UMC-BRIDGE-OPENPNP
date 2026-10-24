@@ -116,25 +116,34 @@ HYDRA-UMC-BRIDGE-OPENPNP/
 │       └── mqtt_transport.py    # Transport MQTT réel - aucun transport machine réel n'existe ici
 ├── tests/
 │   ├── test_board_flow.py       # Tests de traçabilité des cartes et de sécurité
-│   └── test_mqtt_transport.py   # Tests de forme preuve/statut MQTT contre un client broker simulé
+│   ├── test_mqtt_transport.py   # Tests de forme preuve/statut MQTT contre un client broker simulé
 │   ├── test_mqtt_environment.py # Les identifiants MQTT et le TLS de l'environnement du service atteignent le client
 │   ├── test_observation.py      # Le fichier d'état et les scripts d'événements (exécutés dans Node)
 │   ├── test_smema.py            # Lignes SMEMA contre un voisin simulé, et par MQTT
 │   ├── test_traceability.py     # Traces de carte, échantillons DATALAKE et envoi contre un serveur HTTP local
 │   ├── test_board_code.py       # Code de la carte face au travail, et la source VISION-NODE
-│   └── test_hardening.py        # Charges hostiles, un espace de clés par verbe, réponses honnêtes
+│   ├── test_hardening.py        # Charges hostiles, un espace de clés par verbe, réponses honnêtes
+│   ├── openpnp_script_harness.js # Exécute un script OpenPnP en dehors d'OpenPnP (support de test)
+│   ├── test_edge_cases.py       # Limites d'identité, risques de lecture de la configuration et cas limites de la charge utile
+│   └── test_idempotency.py      # Messages retenus et clés d'idempotence répétées
 ├── tools/
 │   ├── build_test.py            # Compilateur + lanceur de tests non mutant (build-test.bat/.sh)
 │   ├── bump_version.py          # Synchronise pyproject.toml, manifeste et CHANGELOG.md
 │   ├── ci_validate.py           # Base CI sans dépendances et non destructive (utilisée par .github/workflows/ci.yml)
 │   ├── inspect_openpnp_config.py # Inspecteur CLI en lecture seule pour un machine.xml OpenPnP enregistré
 │   ├── simulate_cycle.py        # CLI du simulateur de cycle productif, traçabilité uniquement
-│   └── simulate_handoff.py      # CLI du simulateur de passation de carte, traçabilité uniquement
+│   ├── simulate_handoff.py      # CLI du simulateur de passation de carte, traçabilité uniquement
+│   ├── _doc_policy.py           # Règles de documentation partagées par la famille (copie de celle de HYDRA-UMC-SDK, tenue synchronisée)
+│   ├── _readme_parity.py        # Contrôle que les huit README partagent la même structure (copie de celui de HYDRA-UMC-SDK, tenue synchronisée)
+│   ├── hydra_project_tool.py    # Les mêmes commandes dans chaque dépôt : validate, test, ci, version, status, bump
+│   └── extra_build_steps.py     # Les étapes de compilation propres à ce dépôt en plus du test de compilation partagé (ses tests unitaires)
 ├── docs/
 │   ├── BRIDGE_GUIDE.md          # Portée, plateformes compatibles, scripts, portail d'acceptation matérielle
 │   └── HANDOFF_EVIDENCE.md      # Ce qui compte comme preuve de transfert réelle et ce que ce bridge refuse de déduire
 ├── images/
 │   └── HYDRA_UMC_BANNER.svg     # Bannière du README
+├── openpnp-scripts/         # Scripts HYDRA-UMC/ pour le dossier Scripts d'OpenPnP : les crochets d'événements (travail, placement, machine) et le rapport d'état
+├── inspect-openpnp-config.sh / inspect-openpnp-config.bat # Inspection en lecture seule d'un machine.xml enregistré (sans lancer OpenPnP, sans mouvement)
 ├── build-test.bat / build-test.sh  # Valide uniquement, ne modifie jamais le dépôt
 ├── build.bat / build.sh            # Valide et compile (compiler ne change jamais la version)
 ├── pyproject.toml               # Métadonnées du paquet ; dépend de HYDRA-UMC-SDK (git)
