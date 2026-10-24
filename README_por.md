@@ -39,6 +39,19 @@ GPL-3.0-or-later - see LICENSE
 | Destino | O Raspberry Pi CM5 de uma célula HYDRA-UMC |
 | Em hardware real | Só simulado: testado com emuladores, dublês de teste ou simuladores; não há registo de execução em hardware real para esta versão |
 
+## 🚦 Estado do projeto
+
+Cada linha é uma parte deste repositório e a luz diz até onde chega hoje. É escrita com o que o repositório consegue demonstrar (testes, compilações, execuções), não com o que está previsto.
+
+🟢 Feito e verificado · 🟡 Funciona, com limites conhecidos · 🟠 Feito a meio ou ainda por verificar · 🔴 Por fazer ou a não funcionar
+
+| Área | Estado | O que significa aqui |
+|---|---|---|
+| Software | 🟡 | Funciona para o seu propósito principal; a verificação de honestidade acima lista o que ainda falta |
+| Testes | 🟢 | 68 testes automáticos, executados a cada alteração |
+| Hardware real | 🟠 | Só simulado: testado com emuladores, dublês de teste ou simuladores; não há registo de execução em hardware real para esta versão |
+| Documentação | 🟢 | README em oito idiomas, verificado contra o manifesto a cada alteração |
+
 ## 1. 🛠️ VISÃO TÉCNICA GERAL
 
 O **HYDRA-UMC-BRIDGE-OPENPNP** é o bridge de alto nível de fluxo de placas entre o HYDRA-UMC e o OpenPnP. Coordena a preparação da PCB, o carregamento pelo robô, a colocação nativa, a descarga pelo robô e a conclusão rastreável. Não implementa cinemática de colocação, controlo de alimentadores nem movimento em bruto: isso fica inteiramente dentro do OpenPnP.

@@ -39,6 +39,19 @@ GPL-3.0-or-later - see LICENSE
 | Target | The Raspberry Pi CM5 of a HYDRA-UMC cell |
 | On real hardware | Simulated only: tested against emulators, fakes or simulators; no run on real hardware is recorded for this version |
 
+## 🚦 Project status
+
+Each line is one part of this repository and the light says how far it is today. It is written from what the repository can show (tests, builds, runs), not from what is planned.
+
+🟢 Done and verified · 🟡 Works, with known limits · 🟠 Partly done or not verified yet · 🔴 Not done or not working
+
+| Area | State | What it means here |
+|---|---|---|
+| Software | 🟡 | Works for its main purpose; the honesty check above lists what is still missing |
+| Tests | 🟢 | 68 automated tests, run on every change |
+| Real hardware | 🟠 | Simulated only: tested against emulators, fakes or simulators; no run on real hardware is recorded for this version |
+| Documentation | 🟢 | README in eight languages, checked against the manifest on every change |
+
 ## 1. 🛠️ TECHNICAL OVERVIEW
 
 **HYDRA-UMC-BRIDGE-OPENPNP** is the high-level board-flow bridge between HYDRA-UMC and OpenPnP. It coordinates PCB preparation, robot loading, native placement, robot unloading and traceable completion. It does not implement placement kinematics, feeder control or raw motion — those stay entirely inside OpenPnP.
