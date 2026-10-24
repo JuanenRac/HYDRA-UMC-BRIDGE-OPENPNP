@@ -89,6 +89,8 @@ class SimulatedBoardHandoff:
     reason: str
     identity_fingerprint: str | None
     mode: str = "simulation-only"
+    # True when the machine state the gate used was READ from OpenPnP (see observation.py), not claimed by the requester
+    observed: bool = False
 
 
 @dataclass(frozen=True)
@@ -104,8 +106,12 @@ def simulate_board_handoff(
     job: BridgeJob,
     cell_state: CellState,
     identity: BoardIdentity,
+    machine_state: MachineState | None = None,
 ) -> SimulatedBoardHandoff:
-    """Apply identity and SDK gates without contacting OpenPnP or a machine."""
+    """Apply identity and SDK gates without contacting OpenPnP or a machine.
+
+    `machine_state` is what OpenPnP itself reported (see `observation.py`); without it the gate uses the claim of the job.
+    """
 
     validation_error = identity.validation_error()
     if validation_error:
@@ -120,13 +126,14 @@ def simulate_board_handoff(
             None,
         )
 
-    decision = BoardFlow().plan(job, cell_state, identity.board_id)
+    decision = BoardFlow().plan(job, cell_state, identity.board_id, machine_state)
     fingerprint = identity.fingerprint() if decision.allowed else None
     return SimulatedBoardHandoff(
         decision.allowed,
         decision.handoff,
         decision.reason,
         fingerprint,
+        observed=machine_state is not None,
     )
 
 

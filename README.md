@@ -34,7 +34,7 @@ GPL-3.0-or-later - see LICENSE
 |---|---|
 | Version | `0.1.9` |
 | Maturity | Functional |
-| Tests | 68 (`python tools/build_test.py`) |
+| Tests | 208 (`python tools/build_test.py`) |
 | Stack | Python / OpenPnP / HYDRA-UMC-SDK |
 | Target | The Raspberry Pi CM5 of a HYDRA-UMC cell |
 | On real hardware | Simulated only: tested against emulators, fakes or simulators; no run on real hardware is recorded for this version |
@@ -55,6 +55,10 @@ It belongs to the **External Automation Bridges** family: a set of sibling repos
 * ✅ **Trace-only productive-cycle simulation:** `simulate_board_cycle()` evaluates the ordered `PREPARE → LOAD → PROCESS → UNLOAD → COMPLETE` sequence under one explicit cell/machine state; every productive step fails closed outside `READY/IDLE`, and `ABORT` remains separate in the SDK safety path. *(implemented, tested)*
 * ✅ **Deterministic evidence contract:** `docs/HANDOFF_EVIDENCE.md` defines schema `1.0` emitted by both simulators. It carries only phase, decision, reason and a permitted identity fingerprint; raw board, recipe, revision and lot values never enter the JSON record. *(implemented, tested)*
 * ✅ **Retained messages and repeated keys:** `mqtt_transport.py` ignores retained messages (the broker replays them at every reconnect) and, given an `IdempotencyStore`, answers a repeated `idempotency_key` with the answer it gave the first time instead of evaluating the job again. *(implemented, tested in `tests/test_idempotency.py`)*
+* ✅ **Observed machine state (the OpenPnP event scripts):** OpenPnP has no RPC API, so `openpnp-scripts/HYDRA-UMC/Events` holds event scripts (`Job.Starting`, `Job.Placement.Complete`, `Job.Finished`, `Machine.AfterHoming`, `Machine.AfterDisabled`) and a menu script (`Report_state.js`) that write one small JSON file, atomically, with the state each event implies; `observation.py` reads it (`OpenPnpStateSource`, `HYDRA_UMC_OPENPNP_STATE_FILE`) and the bridge gates on it instead of on the claim of the job message. A file that is missing, older than 15 minutes (`HYDRA_UMC_OPENPNP_STATE_MAX_AGE_SECONDS`), written by anyone else or malformed is an OFFLINE machine that refuses the job; `cmd/status` publishes the retained `state`. The scripts are tested in Node against the few Java classes they use; they have not run inside OpenPnP, and the event names are the documented ones. *(implemented, not tried in OpenPnP)*
+* ✅ **SMEMA hand-over signals:** `smema.py`'s `SmemaReceiver` (the cell takes boards from an upstream machine: reads `board available`, drives `machine ready`) and `SmemaSender` (the cell gives boards to a downstream machine: drives `board available`, reads `machine ready`) take part in the SMEMA handshake of an SMT line. Reading is debounced; DRIVING an output goes through the shared gate: only for a READY cell, a machine that was observed idle and an empty fixture (or a staged board), and an output is withdrawn whenever its condition stops being true, on every abort and when a line cannot be written. `cmd/smema_status`, `cmd/smema_ready` and `cmd/smema_offer` expose it. Tested against a simulated neighbour; the CM5 pins need an interface board for the 12 to 24 V cable. *(implemented, simulated only)*
+* ✅ **Per-board traceability:** `traceability.py` puts the hand-offs of each board together and, when its cycle ends, publishes the trace on `hydra/bridges/openpnp/event/board` (QoS 1, not retained) and sends HYDRA-UMC-DATALAKE one `board_handoff` sample per step under `board-<fingerprint>` plus one `production_event` (`good`, `cycleTimeS`) that HYDRA-UMC-PRODUCTION-REPORTS computes OEE from. Only the fingerprint leaves by default; the identifiers can be included when a plant allows it. A data lake that is down never stops the cell, the samples wait and go with the next trace. *(implemented, tested against a local HTTP server)*
+* ✅ **Code on the board:** `board_code.py` compares the DataMatrix read from the board with the board of the job (`HYDRA_UMC_OPENPNP_BOARD_CODE`: `off` by default, `advisory` or `required`); a different code is refused, a job without a board takes the single code read, and what is not a stable identifier is not a code. The code comes from HYDRA-UMC-VISION-NODE's `POST /read-code` (`VisionNodeCodeSource`). *(implemented, not tried on a real label)*
 * ✅ **Hardened MQTT loop and honest answers:** a payload that is too large (over 16 KiB) or cannot be read, deeply nested JSON and any unexpected failure are answered with a refusal on the result topic and never end the loop; `cmd/job` and `cmd/handoff` keep separate idempotency key spaces (`job:`/`handoff:`), so a job checked with the gate can still be handed off with the same key and keeps its identity fingerprint; `cmd/job` answers say `"mode": "simulation-only"` and `"observed": false` (nothing looks at OpenPnP: the machine state is the one the requester declares) and an ABORT through it says that nothing was stopped; the gate and the hand-off trace share one board-identifier rule, `cmd/handoff` accepts `slot_id`, `rack_id` and `table_id`, and a `machine.xml` with a DOCTYPE is refused in any encoding; the bridge announces itself on an `availability` topic with a Last Will. *(implemented, tested in `tests/test_hardening.py`)*
 
 ---
@@ -92,11 +96,19 @@ HYDRA-UMC-BRIDGE-OPENPNP/
 │       ├── configuration.py     # Inspects an OpenPnP machine XML file without opening or changing a machine
 │       ├── evidence.py          # Deterministic, non-sensitive evidence from local-only simulations
 │       ├── handoff.py           # Validates/simulates a traceable PCB hand-off - never imports OpenPnP or touches I/O
+│       ├── observation.py       # The machine state OpenPnP's own event scripts write, trusted only while fresh
+│       ├── smema.py             # SMEMA board available / machine ready lines, with the safety rules on the outputs
+│       ├── traceability.py      # The story of each board for the data lake and the OEE report
+│       ├── board_code.py        # The DataMatrix on the board compared with the board of the job
 │       └── mqtt_transport.py    # Real MQTT broker transport - no real machine transport exists here at all
 ├── tests/
 │   ├── test_board_flow.py       # Board traceability and fail-safe tests
 │   └── test_mqtt_transport.py   # MQTT command/evidence shape tests against a fake broker client
 │   ├── test_mqtt_environment.py # The MQTT credentials and TLS of the service environment reach the client
+│   ├── test_observation.py      # The state file and the event scripts (run in Node)
+│   ├── test_smema.py            # SMEMA lines against a simulated neighbour, and over MQTT
+│   ├── test_traceability.py     # Board traces, DATALAKE samples and sink against a local HTTP server
+│   ├── test_board_code.py       # Code on the board against the job, and the VISION-NODE source
 │   └── test_hardening.py        # Hostile payloads, one key space per verb, honest answers
 ├── tools/
 │   ├── build_test.py            # Non-mutating compile + test runner (build-test.bat/.sh)

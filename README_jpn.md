@@ -34,7 +34,7 @@ GPL-3.0-or-later - see LICENSE
 |---|---|
 | バージョン | `0.1.9` |
 | 成熟度 | 機能する |
-| テスト | 68 (`python tools/build_test.py`) |
+| テスト | 208 (`python tools/build_test.py`) |
 | 技術 | Python / OpenPnP / HYDRA-UMC-SDK |
 | 対象 | HYDRA-UMC セルの Raspberry Pi CM5 |
 | 実機での確認 | シミュレーションのみ：エミュレーター、模擬部品、シミュレーターで試験済み。このバージョンについて実機での動作記録はありません |
@@ -55,6 +55,10 @@ GPL-3.0-or-later - see LICENSE
 * ✅ **追跡専用の生産サイクルシミュレーション:** `simulate_board_cycle()` は明示的なセル/機械状態で、順序付けられた `PREPARE → LOAD → PROCESS → UNLOAD → COMPLETE` を評価する。各生産ステップは `READY/IDLE` 以外では安全に拒否され、`ABORT` は SDK の安全経路で独立したままである。*(実装・テスト済み)*
 * ✅ **決定論的エビデンス契約:** `docs/HANDOFF_EVIDENCE.md` は両シミュレーターが出力するスキーマ `1.0` を定義する。フェーズ、判断、理由、許可された識別子指紋のみを含み、生の基板、レシピ、リビジョン、ロット値は JSON レコードに一切入らない。*(実装・テスト済み)*
 * ✅ **保持メッセージと重複キー:** `mqtt_transport.py` は保持メッセージ（ブローカーが再接続のたびに再送するもの）を無視し、`IdempotencyStore` が渡された場合は、重複した `idempotency_key` に対してジョブを再評価せず、初回に返した応答を返します。*（実装済み、`tests/test_idempotency.py` でテスト済み）*
+* ✅ **観測された機械の状態(OpenPnP のイベントスクリプト):** OpenPnP には RPC API がないため、`openpnp-scripts/HYDRA-UMC/Events` にイベントスクリプト(`Job.Starting`、`Job.Placement.Complete`、`Job.Finished`、`Machine.AfterHoming`、`Machine.AfterDisabled`)とメニュースクリプト(`Report_state.js`)を置き、各イベントが意味する状態を小さな JSON ファイルにアトミックに書き込みます。`observation.py` がそれを読み(`OpenPnpStateSource`、`HYDRA_UMC_OPENPNP_STATE_FILE`)、ブリッジはジョブメッセージの申告ではなくそれに基づいて判断します。ファイルがない、15 分より古い(`HYDRA_UMC_OPENPNP_STATE_MAX_AGE_SECONDS`)、他者が書いた、または不正な場合は、ジョブを拒否する OFFLINE の機械として扱われます。`cmd/status` は保持された `state` を発行します。スクリプトは使用する少数の Java クラスに対して Node でテスト済みで、OpenPnP の中では動かしておらず、イベント名は文書にあるものです。*(実装済み、OpenPnP では未検証)*
+* ✅ **SMEMA 受け渡し信号:** `smema.py` の `SmemaReceiver`(セルが上流の機械から基板を受け取る:`board available` を読み、`machine ready` を駆動)と `SmemaSender`(セルが下流の機械へ基板を渡す:`board available` を駆動し、`machine ready` を読む)が、SMT ラインの SMEMA ハンドシェイクに参加します。読み取りはチャタリング除去され、出力の駆動は共有ゲートを通ります。READY のセル、アイドルと観測された機械、空の治具(または用意された基板)のときだけ出力され、条件が成り立たなくなったとき、中止のたび、ラインに書き込めないときは出力が引き下げられます。`cmd/smema_status`、`cmd/smema_ready`、`cmd/smema_offer` で公開します。模擬の隣接機に対してテスト済み。CM5 のピンで 12〜24 V のケーブルをつなぐにはインターフェース基板が必要です。*(実装済み、シミュレーションのみ)*
+* ✅ **基板ごとのトレーサビリティ:** `traceability.py` は各基板の受け渡しをまとめ、サイクルの終了時にトレースを `hydra/bridges/openpnp/event/board`(QoS 1、保持なし)に発行し、HYDRA-UMC-DATALAKE に各ステップごとの `board_handoff` サンプル(`board-<フィンガープリント>` の下)と、HYDRA-UMC-PRODUCTION-REPORTS が OEE を算出する元になる `production_event`(`good`、`cycleTimeS`)を 1 件送ります。既定ではフィンガープリントだけが外に出ます。工場が許可する場合は識別子も含められます。データレイクが止まってもセルは止まらず、サンプルは待機して次のトレースと一緒に送られます。*(実装済み、ローカル HTTP サーバーに対してテスト済み)*
+* ✅ **基板上のコード:** `board_code.py` は基板から読んだ DataMatrix をジョブが指す基板と照合します(`HYDRA_UMC_OPENPNP_BOARD_CODE`:既定は `off`、`advisory` または `required`)。異なるコードは拒否され、基板を指定しないジョブは読み取った唯一のコードを採用し、安定した識別子でないものはコードとして扱われません。コードは HYDRA-UMC-VISION-NODE の `POST /read-code`(`VisionNodeCodeSource`)から得ます。*(実装済み、実際のラベルでは未検証)*
 * ✅ **堅牢化したMQTTループと正直な応答:** 大きすぎる(16 KiB超)または読めないペイロード、深くネストされたJSON、想定外の障害には、結果トピックで拒否を返し、ループは決して終了しない。`cmd/job` と `cmd/handoff` は冪等キーの空間を分けて持つ(`job:`/`handoff:`)ため、ゲートで確認したジョブを同じキーで受け渡しでき、アイデンティティのフィンガープリントも保たれる。`cmd/job` の応答には `"mode": "simulation-only"` と `"observed": false` が付き(OpenPnPを見ているものはない: マシン状態は要求者の申告である)、そこを通したABORTは何も停止していないことを明示する。ゲートと受け渡しトレースは基板識別子の規則を共有し、`cmd/handoff` は `slot_id`、`rack_id`、`table_id` を受け付け、DOCTYPEを含む `machine.xml` はどのエンコーディングでも拒否される。ブリッジはLast Will付きの `availability` トピックで自らを告知する。*(実装済み、`tests/test_hardening.py` でテスト済み)*
 
 ---
@@ -92,11 +96,19 @@ HYDRA-UMC-BRIDGE-OPENPNP/
 │       ├── configuration.py     # マシンを開いたり変更したりせずにOpenPnPマシンXMLを検査する
 │       ├── evidence.py          # ローカルのみのシミュレーションから決定論的で非機密な証拠を生成
 │       ├── handoff.py           # 追跡可能なPCB受け渡しを検証/シミュレート - OpenPnPを一切importせずI/Oにも触れない
+│       ├── observation.py       # OpenPnP のイベントスクリプトが書く機械の状態。新しい間だけ信用する
+│       ├── smema.py             # SMEMA board available / machine ready ラインと、出力に対する安全規則
+│       ├── traceability.py      # 各基板の履歴(データレイクと OEE レポート向け)
+│       ├── board_code.py        # 基板上の DataMatrix とジョブの基板との照合
 │       └── mqtt_transport.py    # 実MQTTブローカー転送 - ここには実際のマシン転送は一切存在しない
 ├── tests/
 │   ├── test_board_flow.py       # ボード追跡性とフェイルセーフのテスト
 │   └── test_mqtt_transport.py   # 疑似ブローカークライアントに対するMQTTコマンド/証拠形状テスト
 │   ├── test_mqtt_environment.py # サービス環境の MQTT 認証情報と TLS がクライアントに届く
+│   ├── test_observation.py      # 状態ファイルとイベントスクリプト(Node で実行)
+│   ├── test_smema.py            # 模擬の隣接機に対する SMEMA ライン、および MQTT 経由
+│   ├── test_traceability.py     # 基板トレース、DATALAKE サンプル、ローカル HTTP サーバーへの送信
+│   ├── test_board_code.py       # 基板上のコードとジョブの照合、VISION-NODE ソース
 │   └── test_hardening.py        # 悪意あるペイロード、動詞ごとのキー空間、正直な応答
 ├── tools/
 │   ├── build_test.py            # 非破壊的なコンパイル+テストランナー (build-test.bat/.sh)

@@ -34,7 +34,7 @@ GPL-3.0-or-later - see LICENSE
 |---|---|
 | 版本 | `0.1.9` |
 | 成熟度 | 可用 |
-| 测试 | 68 (`python tools/build_test.py`) |
+| 测试 | 208 (`python tools/build_test.py`) |
 | 技术栈 | Python / OpenPnP / HYDRA-UMC-SDK |
 | 目标 | HYDRA-UMC 工作单元的 Raspberry Pi CM5 |
 | 真实硬件 | 仅模拟：使用模拟器、替身或仿真测试；此版本没有在真实硬件上运行的记录 |
@@ -55,6 +55,10 @@ GPL-3.0-or-later - see LICENSE
 * ✅ **仅追溯性生产周期模拟:** `simulate_board_cycle()` 在明确的单元/机器状态下评估有序 `PREPARE → LOAD → PROCESS → UNLOAD → COMPLETE` 序列;每个生产步骤在 `READY/IDLE` 之外都会安全拒绝,而 `ABORT` 仍在 SDK 安全路径中独立处理。*(已实现,已测试)*
 * ✅ **确定性证据契约:** `docs/HANDOFF_EVIDENCE.md` 定义两个模拟器产生的 `1.0` 模式。它只携带阶段、决定、原因和获准的身份指纹;原始板、配方、修订版和批次值绝不会进入 JSON 记录。*(已实现,已测试)*
 * ✅ **保留消息与重复键：** `mqtt_transport.py` 会忽略保留消息（代理在每次重连时都会重放它们）；若传入 `IdempotencyStore`，对重复的 `idempotency_key` 会返回第一次给出的答复，而不是重新评估该作业。*（已实现，已在 `tests/test_idempotency.py` 中测试）*
+* ✅ **观测到的机器状态(OpenPnP 事件脚本):** OpenPnP 没有 RPC API,因此 `openpnp-scripts/HYDRA-UMC/Events` 提供了事件脚本(`Job.Starting`、`Job.Placement.Complete`、`Job.Finished`、`Machine.AfterHoming`、`Machine.AfterDisabled`)和一个菜单脚本(`Report_state.js`),它们以原子方式写入一个小 JSON 文件,内容是每个事件所意味的状态;`observation.py` 读取它(`OpenPnpStateSource`、`HYDRA_UMC_OPENPNP_STATE_FILE`),桥接据此决策,而不是依据作业消息的自述。文件缺失、超过 15 分钟(`HYDRA_UMC_OPENPNP_STATE_MAX_AGE_SECONDS`)、由他人写入或格式错误,都视为拒绝作业的 OFFLINE 机器;`cmd/status` 发布保留的 `state`。脚本已在 Node 中针对其使用的少数 Java 类测试;尚未在 OpenPnP 内运行,事件名称取自文档。*(已实现,尚未在 OpenPnP 中试过)*
+* ✅ **SMEMA 交接信号:** `smema.py` 的 `SmemaReceiver`(单元从上游机器接收板卡:读取 `board available`,驱动 `machine ready`)和 `SmemaSender`(单元向下游机器交付板卡:驱动 `board available`,读取 `machine ready`)参与 SMT 产线的 SMEMA 握手。读取带去抖;驱动输出要经过共享门控:仅当单元为 READY、机器被观测为空闲且治具为空(或已有待交付的板卡)时才置位,条件不再成立、每次中止以及线路无法写入时,输出都会被撤回。`cmd/smema_status`、`cmd/smema_ready` 和 `cmd/smema_offer` 对外提供。已针对模拟邻机测试;CM5 引脚需要接口板才能连接 12 至 24 V 线缆。*(已实现,仅模拟)*
+* ✅ **逐板追溯:** `traceability.py` 汇集每块板的交接,并在其周期结束时把追溯记录发布到 `hydra/bridges/openpnp/event/board`(QoS 1,不保留),同时向 HYDRA-UMC-DATALAKE 发送每一步一个 `board_handoff` 样本(源为 `board-<指纹>`),外加一个 `production_event`(`good`、`cycleTimeS`),HYDRA-UMC-PRODUCTION-REPORTS 据此计算 OEE。默认只有指纹会离开;工厂允许时可附带标识符。数据湖宕机绝不会让单元停下:样本会等待,并随下一条追溯记录发出。*(已实现,已针对本地 HTTP 服务器测试)*
+* ✅ **板上编码:** `board_code.py` 把从板上读到的 DataMatrix 与作业指定的板卡进行比对(`HYDRA_UMC_OPENPNP_BOARD_CODE`:默认 `off`,可选 `advisory` 或 `required`);编码不同则拒绝,没有指定板卡的作业采用读到的唯一编码,不是稳定标识符的内容不算编码。编码来自 HYDRA-UMC-VISION-NODE 的 `POST /read-code`(`VisionNodeCodeSource`)。*(已实现,尚未在真实标签上试过)*
 * ✅ **加固的 MQTT 循环与诚实的回复:** 过大(超过 16 KiB)或无法读取的负载、深度嵌套的 JSON 以及任何意外故障,都会在结果主题上得到拒绝回复,绝不会终止循环;`cmd/job` 与 `cmd/handoff` 使用各自独立的幂等键空间(`job:`/`handoff:`),因此经门控检查的任务仍可用同一个键进行交接,并保留其身份指纹;`cmd/job` 的回复带有 `"mode": "simulation-only"` 和 `"observed": false`(没有任何东西在观察 OpenPnP:机器状态由请求方自行声明),通过它发出的 ABORT 会说明没有停止任何东西;门控与交接追踪共用同一条电路板标识规则,`cmd/handoff` 接受 `slot_id`、`rack_id` 和 `table_id`,带有 DOCTYPE 的 `machine.xml` 无论采用何种编码都会被拒绝;桥接在带遗嘱(Last Will)的 `availability` 主题上宣告自己。*(已实现,在 `tests/test_hardening.py` 中测试)*
 
 ---
@@ -92,11 +96,19 @@ HYDRA-UMC-BRIDGE-OPENPNP/
 │       ├── configuration.py     # 在不打开或修改任何机器的情况下检查 OpenPnP 机器 XML
 │       ├── evidence.py          # 仅基于本地模拟生成确定性、非敏感的证据
 │       ├── handoff.py           # 校验/模拟可追溯的 PCB 交接 - 绝不导入 OpenPnP,也不涉及任何 I/O
+│       ├── observation.py       # OpenPnP 事件脚本写下的机器状态,仅在新鲜时才信任
+│       ├── smema.py             # SMEMA board available / machine ready 线路,及输出上的安全规则
+│       ├── traceability.py      # 每块板的历程,供数据湖和 OEE 报告使用
+│       ├── board_code.py        # 板上 DataMatrix 与作业所指板卡的比对
 │       └── mqtt_transport.py    # 真实 MQTT broker 传输 - 这里根本不存在真实的机器传输
 ├── tests/
 │   ├── test_board_flow.py       # 板级可追溯性与故障安全测试
 │   └── test_mqtt_transport.py   # 针对模拟 broker 客户端的 MQTT 命令/证据格式测试
 │   ├── test_mqtt_environment.py # 服务环境中的 MQTT 凭据和 TLS 会传到客户端
+│   ├── test_observation.py      # 状态文件与事件脚本(在 Node 中运行)
+│   ├── test_smema.py            # 针对模拟邻机的 SMEMA 线路,以及经由 MQTT
+│   ├── test_traceability.py     # 板卡追溯、DATALAKE 样本,以及针对本地 HTTP 服务器的发送
+│   ├── test_board_code.py       # 板上编码与作业的比对,以及 VISION-NODE 来源
 │   └── test_hardening.py        # 恶意负载、按动词区分的键空间、诚实的回复
 ├── tools/
 │   ├── build_test.py            # 非变更式编译 + 测试运行器 (build-test.bat/.sh)
