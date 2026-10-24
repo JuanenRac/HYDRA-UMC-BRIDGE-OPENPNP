@@ -2,7 +2,7 @@
 
 All notable changes to this project are documented here.
 
-## [Unreleased]
+## [0.2.0] - The machine state is read from OpenPnP and sMEMA hand-over signals
 
 - **The machine state is read from OpenPnP.** Event scripts (`Job.Starting`, `Job.Placement.Complete`, `Job.Finished`, `Machine.AfterHoming`, `Machine.AfterDisabled`) and a menu script (`Report_state.js`) in `openpnp-scripts/HYDRA-UMC` write the state each event implies to one small JSON file, atomically; `OpenPnpStateSource` reads it and the bridge gates on it instead of on the claim of the job message. A missing, stale, foreign or malformed file is an OFFLINE machine and the job is refused with the reason; answers say `observed: true` when the state was read. `cmd/status` publishes the retained `state`. The scripts are tested in Node; they have not run inside OpenPnP.
 - **SMEMA hand-over signals.** `SmemaReceiver` and `SmemaSender` read and drive `board available` / `machine ready` with debounce; driving an output goes through the shared gate (READY cell, machine observed idle, empty fixture or staged board), an output is withdrawn when its condition stops being true, on every abort and when a line cannot be written. Topics `cmd/smema_status`, `cmd/smema_ready`, `cmd/smema_offer` and the retained `smema`. Tested against a simulated neighbour.
@@ -16,6 +16,10 @@ All notable changes to this project are documented here.
 - The banner follows the animated style of the ecosystem banners, with the name, the kind and the technologies of the project.
 - Added `tools/hydra_project_tool.py`: the same `validate`, `test`, `version`, `status` and `bump` commands in every repository. The checks run with `HYDRA_UMC_CI=1` and fail if the version changes; only `bump` changes it.
 - The SDK is now fetched at a release tag instead of the main branch, so a change of the SDK cannot break this repository by itself.
+
+## [0.2.0]
+
+- Successful incremental build: synchronized package metadata and `hydra-umc.project.json`.
 
 ## [0.1.9]
 

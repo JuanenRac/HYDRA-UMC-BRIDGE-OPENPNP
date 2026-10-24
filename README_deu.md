@@ -32,9 +32,9 @@ GPL-3.0-or-later - see LICENSE
 
 | | |
 |---|---|
-| Version | `0.1.9` |
+| Version | `0.2.0` |
 | Reifegrad | Funktionsfähig |
-| Tests | 208 (`python tools/build_test.py`) |
+| Tests | 68 (`python tools/build_test.py`) |
 | Technik | Python / OpenPnP / HYDRA-UMC-SDK |
 | Ziel | Der Raspberry Pi CM5 einer HYDRA-UMC-Zelle |
 | Auf echter Hardware | Nur simuliert: gegen Emulatoren, Attrappen oder Simulatoren getestet; für diese Version ist kein Lauf auf echter Hardware vermerkt |
@@ -154,7 +154,7 @@ bash build.sh
 
 ## ✅ AKTUELLER STATUS UND NÄCHSTE SCHRITTE
 
-**Heute real:** Version `0.1.9`, ein lokal getesteter nachvollziehbarer PCB-Übergabekern (`BoardFlow`), gestützt auf das gemeinsame Auftragsgatter von `HYDRA-UMC-SDK`, ein echter MQTT-Befehls-/Evidenztransport (`mqtt_transport.py`), eine deterministische `unittest`-Suite mit sechsund68 Tests, ein Prüfer für ein gespeichertes Profil, der echte OpenPnP-Aktuator-/Signalgeber-/Düsenspitzen-Evidenz zusammen mit Kopf-/Kamera-/Treiber-/Feeder-Zählungen meldet, eine sichtbare schreibgeschützte OpenPnP-Menüvorlage, identitätsgebundene Übergabe-/Zyklus-Simulationen und ein CI-verifizierter nicht-sensibler JSON-Evidenzvertrag ohne Maschinen-E/A.
+**Heute real:** Version `0.2.0`, ein lokal getesteter nachvollziehbarer PCB-Übergabekern (`BoardFlow`), gestützt auf das gemeinsame Auftragsgatter von `HYDRA-UMC-SDK`, ein echter MQTT-Befehls-/Evidenztransport (`mqtt_transport.py`), eine deterministische `unittest`-Suite mit sechsund68 Tests, ein Prüfer für ein gespeichertes Profil, der echte OpenPnP-Aktuator-/Signalgeber-/Düsenspitzen-Evidenz zusammen mit Kopf-/Kamera-/Treiber-/Feeder-Zählungen meldet, eine sichtbare schreibgeschützte OpenPnP-Menüvorlage, identitätsgebundene Übergabe-/Zyklus-Simulationen und ein CI-verifizierter nicht-sensibler JSON-Evidenzvertrag ohne Maschinen-E/A.
 
 **Integrationsgrenze:** OpenPnP behält jederzeit Bestückungskinematik, Feeder-Steuerung und rohe Bewegung; diese Brücke steuert und verfolgt ausschließlich die *Übergabe* darum herum — Roboterbeladung, Abschluss der nativen Bestückung, Roboterentladung.
 
