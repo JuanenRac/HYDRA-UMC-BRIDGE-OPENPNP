@@ -27,7 +27,7 @@ GPL-3.0-or-later - see LICENSE
 
 > **诚实检查——今天真正可运行的部分：** 可追溯的板流核心及其安全门控（`board_flow.py` 中的 `BoardFlow`，每个任务都会经过 `HYDRA-UMC-SDK` 自身真正的 `evaluate_job()`）、只读的 OpenPnP 配置检查器（`configuration.py`）、仅限追踪的交接/周期模拟器（`handoff.py`、`evidence.py`），以及 MQTT 命令/证据传输（`mqtt_transport.py`）都是真实的，并由 208 个通过的 `unittest` 用例覆盖（`python tools/build_test.py` —— `test_board_flow.py`、`test_mqtt_transport.py`）。以上这些都从未真正打开过 OpenPnP、真实的机器连接或真实的 MQTT broker——`test_mqtt_transport.py`、`test_hardening.py`、`test_idempotency.py`、`test_mqtt_environment.py` 使用的是一个伪造的 broker 客户端，`configuration.py` 只会解析一个已保存的 `machine.xml` 文件，而 `handoff.py`/`evidence.py` 的模拟器明确只在本地运行，没有任何 OpenPnP、串口或机器 I/O。目前还没有与 OpenPnP 扩展/API 的实时集成——详见下文的"当前状态与后续步骤"（已经如实说明了这一点），以及 `CHANGELOG.md` 中目前具体已交付的内容。
 
-> **安全与安防现状:**本生态系统不是经认证的安全系统。目前尚无硬件 E-STOP 通路,没有由固件强制执行的限位或联锁,也没有经过验证的运动指令;固件映像使用 CRC32 和共享密钥的 HMAC-SHA256 校验,而非非对称签名;TLS 与双向 TLS 均为可选项,默认关闭;自制电路板尚未组装或测试。在依赖此处任何说法来保障人身安全之前,请先阅读[安全基线](https://github.com/JuanenRac/HYDRA-UMC-DOCS/blob/main/docs/SECURITY_BASELINE.md)和[威胁模型](https://github.com/JuanenRac/HYDRA-UMC-DOCS/blob/main/docs/THREAT_MODEL.md)。
+> **安全与安防现状:**本生态系统不是经认证的安全系统。目前尚无硬件 E-STOP 通路,没有由固件强制执行的限位或联锁,也没有经过验证的运动指令;固件映像使用 CRC-32 和 Ed25519 签名校验,发布构建会拒绝已公开的开发密钥(中继之后的工具头和扩展板仍运行 URTC 的引导程序,它们使用共享密钥的 HMAC-SHA256 而不是签名);TLS 与双向 TLS 均为可选项,默认关闭;自制电路板尚未组装或测试。在依赖此处任何说法来保障人身安全之前,请先阅读[安全基线](https://github.com/JuanenRac/HYDRA-UMC-DOCS/blob/main/docs/SECURITY_BASELINE.md)和[威胁模型](https://github.com/JuanenRac/HYDRA-UMC-DOCS/blob/main/docs/THREAT_MODEL.md)。
 
 ---
 
