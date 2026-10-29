@@ -1,0 +1,134 @@
+{
+  "repo": "HYDRA-UMC-BRIDGE-OPENPNP",
+  "ecosystem": "hydra",
+  "tagline": "A board hand-off with OpenPnP: SMEMA, the board code and a trace, behind the shared gate.",
+  "description": "HYDRA-UMC-BRIDGE-OPENPNP coordinates the hand-off of printed circuit boards between a robot cell and an OpenPnP pick-and-place machine. It trusts the state file written by OpenPnP's own event scripts only while it is fresh, checks the DataMatrix of the board, speaks SMEMA to the neighbours on the line, passes every job through the shared evaluate_job gate and records the story of each board for the data lake.",
+  "columns": [
+    "WHO COMMANDS IT",
+    "THIS REPOSITORY",
+    "WHAT IT READS"
+  ],
+  "nodes": [
+    {
+      "id": "broker",
+      "column": 0,
+      "level": "external",
+      "title": "HYDRA-UMC-MQTT-BROKER",
+      "lines": [
+        "carries cmd/ and the",
+        "state and board events"
+      ],
+      "title_size": 12
+    },
+    {
+      "id": "sdk",
+      "column": 0,
+      "level": "contract",
+      "title": "HYDRA-UMC-SDK",
+      "lines": [
+        "evaluate_job(): the gate",
+        "every bridge shares"
+      ]
+    },
+    {
+      "id": "mqtt",
+      "column": 1,
+      "level": "tested",
+      "title": "mqtt_transport.py",
+      "lines": [
+        "cmd/job, cmd/handoff, SMEMA",
+        "verbs; event/board"
+      ],
+      "code": [
+        "src/hydra_umc_bridge_openpnp/mqtt_transport.py::TOPIC_PREFIX"
+      ]
+    },
+    {
+      "id": "flow",
+      "column": 1,
+      "level": "contract",
+      "title": "board_flow.py",
+      "lines": [
+        "hand-off phases, the board",
+        "code check, traceability"
+      ],
+      "code": [
+        "src/hydra_umc_bridge_openpnp/board_flow.py",
+        "src/hydra_umc_bridge_openpnp/board_code.py",
+        "src/hydra_umc_bridge_openpnp/traceability.py"
+      ]
+    },
+    {
+      "id": "obs",
+      "column": 1,
+      "level": "tested",
+      "title": "observation.py, smema.py",
+      "lines": [
+        "fresh OpenPnP state; SMEMA",
+        "signals with safety rules"
+      ],
+      "code": [
+        "src/hydra_umc_bridge_openpnp/observation.py",
+        "src/hydra_umc_bridge_openpnp/smema.py"
+      ]
+    },
+    {
+      "id": "opnp",
+      "column": 2,
+      "level": "untested",
+      "title": "OpenPnP",
+      "lines": [
+        "its event scripts write the",
+        "state file; never run for real"
+      ]
+    },
+    {
+      "id": "line",
+      "column": 2,
+      "level": "untested",
+      "title": "SMT line neighbours",
+      "lines": [
+        "SMEMA ready and board",
+        "available signals"
+      ],
+      "title_size": 12
+    }
+  ],
+  "edges": [
+    {
+      "from": "broker",
+      "to": "mqtt",
+      "label": "cmd/job",
+      "level": "tested"
+    },
+    {
+      "from": "sdk",
+      "to": "flow",
+      "label": "gate",
+      "level": "contract"
+    },
+    {
+      "from": "mqtt",
+      "to": "flow",
+      "level": "tested"
+    },
+    {
+      "from": "flow",
+      "to": "obs",
+      "level": "tested"
+    },
+    {
+      "from": "obs",
+      "to": "opnp",
+      "label": "state file",
+      "level": "untested"
+    },
+    {
+      "from": "obs",
+      "to": "line",
+      "label": "SMEMA",
+      "level": "untested"
+    }
+  ],
+  "footer": "Never connected to a real OpenPnP machine or a real line: tested with simulations and fixtures."
+}

@@ -1,32 +1,35 @@
 <!-- =============================================================================
-HYDRA-UMC-BRIDGE-OPENPNP - Ponte di flusso schede per OpenPnP
+HYDRA-UMC-BRIDGE-OPENPNP - OpenPnP board-flow coordination bridge
 Copyright (C) JuanenRac (Electro Hobby 3D) <electrohobby3d@gmail.com>
 GPL-3.0-or-later - see LICENSE
 ============================================================================= -->
 
 <p align="center">
-  <img src="images/HYDRA_UMC_BANNER.svg" alt="Banner HYDRA-UMC-BRIDGE-OPENPNP" width="100%">
+  <img src="images/HYDRA_UMC_BANNER.svg" alt="HYDRA-UMC-BRIDGE-OPENPNP banner" width="100%">
 </p>
 
-# 🎯 HYDRA-UMC-BRIDGE-OPENPNP
+# 🔩 HYDRA-UMC-BRIDGE-OPENPNP
 
 <p align="center"><a href="README.md">🇺🇸 English</a> | <a href="README_spa.md">🇪🇸 Español</a> | <a href="README_fra.md">🇫🇷 Français</a> | 🇮🇹 <b>Italiano</b> | <a href="README_deu.md">🇩🇪 Deutsch</a> | <a href="README_zho.md">🇨🇳 简体中文</a> | <a href="README_jpn.md">🇯🇵 日本語</a> | <a href="README_por.md">🇵🇹 Português</a></p>
 
 ### 📋 Ponte di coordinamento tracciabile del flusso schede per OpenPnP
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Licenza-GPL%203.0--or--later-blue.svg" alt="GPL 3.0 or later">
-  <img src="https://img.shields.io/badge/Python-3.11%2B-3776AB.svg" alt="Python 3.11+">
-  <img src="https://img.shields.io/badge/Safety-Fails%20Closed-red.svg" alt="Fail-safe">
+  <img src="https://img.shields.io/badge/License-GPL%203.0--or--later-blue.svg" alt="GPL 3.0 or later">
+  <img src="https://img.shields.io/badge/Python-3.11%2B-3776AB.svg" alt="Python">
+  <img src="https://img.shields.io/badge/Safety-Fails%20Closed-red.svg" alt="Safety">
+  <img src="https://img.shields.io/badge/Tests-208%20passing-2ea44f.svg" alt="Tests">
+  <img src="https://img.shields.io/badge/Version-0.2.0-0f6cbd.svg" alt="Version">
+  <img src="https://img.shields.io/badge/Maturity-functional-0F6CBD.svg" alt="Maturity">
 </p>
 
 ---
 
-> **Verifica di onestà - cosa funziona davvero oggi:** il nucleo tracciabile del flusso di schede e il suo gate di sicurezza (`board_flow.py` con `BoardFlow`, che fa passare ogni lavoro attraverso il vero `evaluate_job()` di `HYDRA-UMC-SDK`), l'ispettore di profilo OpenPnP di sola lettura (`configuration.py`), i simulatori di passaggio/ciclo solo di traccia (`handoff.py`, `evidence.py`), e il trasporto MQTT di comandi/evidenza (`mqtt_transport.py`) sono reali e coperti da 68 casi `unittest` superati (`python tools/build_test.py` - `test_board_flow.py`, `test_mqtt_transport.py`). Nulla di tutto ciò ha mai aperto OpenPnP, un vero collegamento macchina, o un vero broker MQTT - `test_mqtt_transport.py`, `test_hardening.py`, `test_idempotency.py`, `test_mqtt_environment.py` usa un client broker fittizio, `configuration.py` si limita ad analizzare un file `machine.xml` salvato, e i simulatori di `handoff.py`/`evidence.py` sono esplicitamente solo locali, senza I/O OpenPnP, seriale o macchina. Non esiste ancora un'integrazione live con l'estensione/API OpenPnP - vedi "Stato attuale e prossimi passi" qui sotto, che lo dice già chiaramente, e `CHANGELOG.md` per cosa è stato esattamente consegnato finora.
-
----
+> **Verifica di onestà - cosa funziona davvero oggi:** il nucleo tracciabile del flusso di schede e il suo gate di sicurezza (`board_flow.py` con `BoardFlow`, che fa passare ogni lavoro attraverso il vero `evaluate_job()` di `HYDRA-UMC-SDK`), l'ispettore di profilo OpenPnP di sola lettura (`configuration.py`), i simulatori di passaggio/ciclo solo di traccia (`handoff.py`, `evidence.py`), e il trasporto MQTT di comandi/evidenza (`mqtt_transport.py`) sono reali e coperti da 208 casi `unittest` superati (`python tools/build_test.py` - `test_board_flow.py`, `test_mqtt_transport.py`). Nulla di tutto ciò ha mai aperto OpenPnP, un vero collegamento macchina, o un vero broker MQTT - `test_mqtt_transport.py`, `test_hardening.py`, `test_idempotency.py`, `test_mqtt_environment.py` usa un client broker fittizio, `configuration.py` si limita ad analizzare un file `machine.xml` salvato, e i simulatori di `handoff.py`/`evidence.py` sono esplicitamente solo locali, senza I/O OpenPnP, seriale o macchina. Non esiste ancora un'integrazione live con l'estensione/API OpenPnP - vedi "Roadmap e limiti noti" qui sotto, che lo dice già chiaramente, e `CHANGELOG.md` per cosa è stato esattamente consegnato finora.
 
 > **Stato di sicurezza (safety e security):** questo ecosistema non è un sistema di sicurezza certificato. Non esiste ancora un percorso E-STOP hardware, né limiti o interblocchi imposti dal firmware, né un comando di movimento verificato; le immagini firmware sono controllate con CRC32 e un HMAC-SHA256 a chiave condivisa, non con una firma asimmetrica; TLS e TLS reciproco sono opzionali e disattivati per impostazione predefinita; nessuna scheda propria è stata ancora assemblata o provata. Leggi la [base di sicurezza](https://github.com/JuanenRac/HYDRA-UMC-DOCS/blob/main/docs/SECURITY_BASELINE.md) e il [modello delle minacce](https://github.com/JuanenRac/HYDRA-UMC-DOCS/blob/main/docs/THREAT_MODEL.md) prima di fidarti di qualsiasi affermazione qui per la sicurezza di una persona.
+
+---
 
 ## 📋 In breve
 
@@ -34,10 +37,12 @@ GPL-3.0-or-later - see LICENSE
 |---|---|
 | Versione | `0.2.0` |
 | Maturità | Funzionale |
-| Test | 68 (`python tools/build_test.py`) |
+| Test | 208 (`python tools/build_test.py`) |
 | Tecnologia | Python / OpenPnP / HYDRA-UMC-SDK |
 | Destinazione | Il Raspberry Pi CM5 di una cella HYDRA-UMC |
 | Su hardware reale | Solo simulato: provato con emulatori, test double o simulatori; per questa versione non risulta alcuna esecuzione su hardware reale |
+
+**Vai a:** [Panoramica](#-panoramica) · [Architettura](#-architettura) · [Funzionalità](#-funzionalità) · [Sicurezza e protezione](#-sicurezza-e-protezione) · [Interfacce](#-interfacce) · [Configurazione](#-configurazione) · [Avvio rapido](#-avvio-rapido) · [Test](#-test) · [Risoluzione dei problemi](#-risoluzione-dei-problemi) · [Struttura del repository](#-struttura-del-repository) · [Progetti correlati](#-progetti-correlati)
 
 ## 🚦 Stato del progetto
 
@@ -48,35 +53,30 @@ Ogni riga è una parte di questo repository e il semaforo dice a che punto è og
 | Area | Stato | Cosa significa qui |
 |---|---|---|
 | Software | 🟡 | Funziona per il suo scopo principale; la verifica di onestà qui sopra elenca ciò che manca ancora |
-| Test | 🟢 | 68 test automatici, eseguiti a ogni modifica |
+| Test | 🟢 | 208 test automatici, eseguiti a ogni modifica |
 | Hardware reale | 🟠 | Solo simulato: provato con emulatori, test double o simulatori; per questa versione non risulta alcuna esecuzione su hardware reale |
 | Documentazione | 🟢 | README in otto lingue, verificato rispetto al manifesto a ogni modifica |
 
-## 1. 🛠️ PANORAMICA TECNICA
+## 🎯 Panoramica
 
 **HYDRA-UMC-BRIDGE-OPENPNP** è il ponte di alto livello per il flusso schede tra HYDRA-UMC e OpenPnP. Coordina la preparazione dei PCB, il carico da parte del robot, il posizionamento nativo, lo scarico da parte del robot e il completamento tracciabile. Non implementa la cinematica di posizionamento, il controllo dei feeder o il movimento grezzo — tutto ciò resta interamente all'interno di OpenPnP.
 
 Appartiene alla famiglia **External Automation Bridges**: un insieme di repository fratelli (CNC, LASER, OPENPNP, PRINTER3D, ROS2) che condividono lo stesso contratto di sicurezza di `HYDRA-UMC-SDK`, così nessun ponte può inventare una propria definizione di "sicuro per lavorare".
 
-### Caratteristiche principali:
-* ✅ **Nucleo tracciabile di flusso schede, reale:** `board_flow.py` — `BoardFlow.plan()` rifiuta qualsiasi lavoro il cui `board_id` sia vuoto o presenti spazi iniziali/finali *ancor prima* di valutare la porta di sicurezza; ogni passaggio deve portare un identificatore stabile e pulito. *(implementato, testato in `tests/test_board_flow.py`)*
-* ✅ **Mappa di passaggio per fase, reale:** un dizionario fisso associa ogni `JobPhase` (`PREPARE`, `LOAD`, `PROCESS`, `UNLOAD`, `COMPLETE`, `ABORT`) a una descrizione esplicita e leggibile del passaggio — `verify-board-and-fixture`, `robot-loads-board-into-pnp-fixture`, `openpnp-places-declared-job`, ecc. *(implementato)*
-* ✅ **Porta di sicurezza condivisa, reale:** ogni lavoro valido viene valutato tramite `evaluate_job()` del `bridge_contract` di `HYDRA-UMC-SDK`, la stessa porta usata da tutti i ponti fratelli; un passaggio produttivo procede solo quando la macchina esterna riporta `IDLE` e la cella HYDRA-UMC è `READY`. *(implementato)*
-* ✅ **Build/test non mutante:** `build-test.bat`/`.sh` compilano il codice sorgente ed eseguono la suite di test di tracciabilità delle schede e fail-safe senza toccare i file di versione o il CHANGELOG. *(implementato, vedi COMPILAZIONE ED ESECUZIONE più sotto)*
-* ✅ **Ispezione del profilo OpenPnP in sola lettura:** `inspect_openpnp_config.py` analizza un `machine.xml` salvato, mentre `openpnp-scripts/HYDRA-UMC/inspect_profile.js` è un modello di script del menu OpenPnP invocato manualmente; entrambi riportano solo classe e conteggi dei componenti e il modello mostra il risultato in una finestra informativa senza inviare comandi alla macchina. *(implementato, testato)*
-* ✅ **Simulazione di passaggio solo tracciabile:** `BoardIdentity` associa identificatori di scheda, ricetta, revisione e lotto prima che `simulate_board_handoff()` applichi la porta condivisa dell'SDK; emette un'impronta SHA-256 deterministica solo per un piano consentito e non ha I/O OpenPnP, seriale o macchina. Campi opzionali `slot_id`/`rack_id`/`table_id` tracciano il reale posizionamento fisico (quale slot feeder, quale rack di stoccaggio e quale tavolo ha usato esattamente questo passaggio) come identità propria e separata, così due posizionamenti della stessa scheda non risultano mai indistinguibili nell'impronta. *(implementato, testato)*
-* ✅ **Simulazione del ciclo produttivo solo tracciabile:** `simulate_board_cycle()` valuta la sequenza ordinata `PREPARE → LOAD → PROCESS → UNLOAD → COMPLETE` sotto uno stato esplicito cella/macchina; ogni passaggio produttivo fallisce chiuso fuori da `READY/IDLE`, e `ABORT` resta separato nel percorso di sicurezza dell'SDK. *(implementato, testato)*
-* ✅ **Contratto di evidenza deterministico:** `docs/HANDOFF_EVIDENCE.md` definisce lo schema `1.0` emesso da entrambi i simulatori. Trasporta solo fase, decisione, motivo e impronta di identità consentita; i valori grezzi di scheda, ricetta, revisione e lotto non entrano mai nel record JSON. *(implementato, testato)*
-* ✅ **Messaggi trattenuti e chiavi ripetute:** `mqtt_transport.py` ignora i messaggi trattenuti (il broker li ripropone a ogni riconnessione) e, se riceve un `IdempotencyStore`, risponde a una `idempotency_key` ripetuta con la risposta data la prima volta invece di valutare di nuovo il lavoro. *(implementato, testato in `tests/test_idempotency.py`)*
-* ✅ **Stato della macchina osservato (gli script di eventi di OpenPnP):** OpenPnP non ha un'API RPC, quindi `openpnp-scripts/HYDRA-UMC/Events` contiene script di eventi (`Job.Starting`, `Job.Placement.Complete`, `Job.Finished`, `Machine.AfterHoming`, `Machine.AfterDisabled`) e uno script di menu (`Report_state.js`) che scrivono un piccolo file JSON, in modo atomico, con lo stato che ogni evento implica; `observation.py` lo legge (`OpenPnpStateSource`, `HYDRA_UMC_OPENPNP_STATE_FILE`) e il bridge decide su di esso invece che su quanto afferma il messaggio del lavoro. Un file assente, più vecchio di 15 minuti (`HYDRA_UMC_OPENPNP_STATE_MAX_AGE_SECONDS`), scritto da altri o malformato è una macchina OFFLINE che rifiuta il lavoro; `cmd/status` pubblica lo `state` trattenuto. Gli script sono testati in Node contro le poche classi Java che usano; non sono stati eseguiti dentro OpenPnP e i nomi degli eventi sono quelli documentati. *(implementato, non provato in OpenPnP)*
-* ✅ **Segnali di passaggio SMEMA:** `SmemaReceiver` (la cella riceve schede da una macchina a monte: legge `board available`, pilota `machine ready`) e `SmemaSender` (la cella consegna schede a una macchina a valle: pilota `board available`, legge `machine ready`) di `smema.py` partecipano all'handshake SMEMA di una linea SMT. La lettura è filtrata contro i rimbalzi; PILOTARE un'uscita passa per il gate condiviso: solo con una cella READY, una macchina osservata a riposo e l'attrezzatura vuota (o una scheda pronta), e un'uscita viene ritirata appena la sua condizione smette di valere, a ogni abort e quando una linea non può essere scritta. `cmd/smema_status`, `cmd/smema_ready` e `cmd/smema_offer` la espongono. Testato contro un vicino simulato; i pin della CM5 richiedono una scheda di interfaccia per il cavo da 12 a 24 V. *(implementato, solo simulato)*
-* ✅ **Tracciabilità per scheda:** `traceability.py` riunisce i passaggi di ogni scheda e, alla fine del suo ciclo, pubblica la traccia su `hydra/bridges/openpnp/event/board` (QoS 1, non trattenuta) e invia a HYDRA-UMC-DATALAKE un campione `board_handoff` per passo sotto `board-<impronta>` più un `production_event` (`good`, `cycleTimeS`) da cui HYDRA-UMC-PRODUCTION-REPORTS calcola l'OEE. Per impostazione predefinita esce solo l'impronta; gli identificatori si possono includere quando uno stabilimento lo consente. Un data lake fermo non ferma mai la cella: i campioni aspettano e partono con la traccia successiva. *(implementato, testato contro un server HTTP locale)*
-* ✅ **Codice sulla scheda:** `board_code.py` confronta il DataMatrix letto sulla scheda con la scheda del lavoro (`HYDRA_UMC_OPENPNP_BOARD_CODE`: `off` per impostazione predefinita, `advisory` o `required`); un codice diverso viene rifiutato, un lavoro senza scheda prende l'unico codice letto, e ciò che non è un identificatore stabile non è un codice. Il codice arriva dal `POST /read-code` di HYDRA-UMC-VISION-NODE (`VisionNodeCodeSource`). *(implementato, non provato su un'etichetta reale)*
-* ✅ **Ciclo MQTT blindato e risposte oneste:** un payload troppo grande (oltre 16 KiB) o illeggibile, un JSON profondamente annidato e qualsiasi guasto inatteso ricevono un rifiuto sul topic di risultato e non terminano mai il ciclo; `cmd/job` e `cmd/handoff` mantengono spazi di chiavi di idempotenza separati (`job:`/`handoff:`), così un lavoro verificato con il gate può ancora essere passato con la stessa chiave e conserva la sua impronta di identità; le risposte di `cmd/job` riportano `"mode": "simulation-only"` e `"observed": false` (nulla guarda OpenPnP: lo stato della macchina è quello dichiarato dal richiedente) e un ABORT passato di lì dice che nulla è stato fermato; il gate e la traccia del passaggio condividono un'unica regola per gli identificatori di scheda, `cmd/handoff` accetta `slot_id`, `rack_id` e `table_id`, e un `machine.xml` con DOCTYPE viene rifiutato in qualsiasi codifica; il bridge si annuncia su un topic `availability` con Last Will. *(implementato, testato in `tests/test_hardening.py`)*
+## 🧩 Ruolo in HYDRA-UMC
 
----
+**HYDRA-UMC-BRIDGE-OPENPNP** sta tra una macchina pick-and-place OpenPnP e la sua linea SMT e la cella di robot. Riferisce ciò che dice quel lato, interroga la porta condivisa prima di qualsiasi lavoro ausiliario e non assume mai l'autorità della macchina con cui si coordina.
 
-## 2. 🔄 FLUSSO DI COORDINAMENTO DELLE SCHEDE
+Ogni bridge parla il contratto di sicurezza condiviso di `HYDRA-UMC-SDK`: un lavoro viene accettato solo se la porta condivisa `evaluate_job()` lo permette, e quella porta fallisce chiusa. Il progetto padre è `HYDRA-UMC-SERVER`; questo bridge non lo chiama, risponde via MQTT, attraverso `HYDRA-UMC-MQTT-BROKER`, a chi comanda la cella.
+
+## 🏛️ Architettura
+
+<p align="center">
+  <img src="images/architecture.svg" alt="HYDRA-UMC-BRIDGE-OPENPNP architecture" width="100%">
+</p>
+
+<details>
+<summary>Versione testuale del diagramma (Mermaid)</summary>
 
 ```mermaid
 flowchart LR
@@ -85,9 +85,9 @@ flowchart LR
     SDK -- GateDecision --> RESULT["MQTT: cmd/job/result"]
 ```
 
----
+</details>
 
-## 3. 🧱 ARCHITETTURA E DECISIONI DI PROGETTAZIONE
+**Perché è fatto così**
 
 * **Perché la validazione di `board_id` avviene prima di qualsiasi altra cosa in `plan()`.** Il primissimo controllo di `BoardFlow.plan()` è `not IDENTIFIER.fullmatch(board_id)` — un identificatore di scheda malformato o ambiguo viene rifiutato immediatamente, con una motivazione esplicita, invece di essere inoltrato a valle dove sarebbe più difficile da tracciare.
 * **Perché i passaggi sono un dizionario fisso indicizzato per `JobPhase`, non una formattazione di stringhe.** `BoardFlow._handoffs` mappa ciascuna delle sei fasi supportate su una descrizione letterale e univoca. Una futura fase sconosciuta viene rifiutata come `unrecognized-phase`; non può diventare un passaggio consentito solo perché la porta comune dell'SDK è pronta.
@@ -96,67 +96,96 @@ flowchart LR
 * **Perché l'estensione/API OpenPnP dal vivo resta rimandata.** Il profilo macchina salvato può ora essere ispezionato in sola lettura, ma scegliere un'interfaccia plugin o una superficie dal vivo richiede ancora una sessione di prova non produttiva; ciò evita di incorporare ipotesi non verificate di movimento o feeder.
 * **Come si inserisce nel resto dell'ecosistema.** BRIDGE-OPENPNP si trova tra un lavoro OpenPnP e `HYDRA-UMC-SDK` → `HYDRA-UMC-MQTT-BROKER` → sicurezza di cella: coordina il lato robotico di un passaggio di schede, non rivendica mai la cinematica di posizionamento o il controllo dei feeder che appartengono a OpenPnP stesso.
 
----
+## ✨ Funzionalità
 
-## 📂 STRUTTURA DELLE DIRECTORY
+* ✅ **Nucleo tracciabile di flusso schede, reale:** `board_flow.py` — `BoardFlow.plan()` rifiuta qualsiasi lavoro il cui `board_id` sia vuoto o presenti spazi iniziali/finali *ancor prima* di valutare la porta di sicurezza; ogni passaggio deve portare un identificatore stabile e pulito. *(implementato, testato in `tests/test_board_flow.py`)*
+* ✅ **Mappa di passaggio per fase, reale:** un dizionario fisso associa ogni `JobPhase` (`PREPARE`, `LOAD`, `PROCESS`, `UNLOAD`, `COMPLETE`, `ABORT`) a una descrizione esplicita e leggibile del passaggio — `verify-board-and-fixture`, `robot-loads-board-into-pnp-fixture`, `openpnp-places-declared-job`, ecc. *(implementato)*
+* ✅ **Porta di sicurezza condivisa, reale:** ogni lavoro valido viene valutato tramite `evaluate_job()` del `bridge_contract` di `HYDRA-UMC-SDK`, la stessa porta usata da tutti i ponti fratelli; un passaggio produttivo procede solo quando la macchina esterna riporta `IDLE` e la cella HYDRA-UMC è `READY`. *(implementato)*
+* ✅ **Build/test non mutante:** `build-test.bat`/`.sh` compilano il codice sorgente ed eseguono la suite di test di tracciabilità delle schede e fail-safe senza toccare i file di versione o il CHANGELOG. *(implementato, vedi Compilazione e rilascio più sotto)*
+* ✅ **Ispezione del profilo OpenPnP in sola lettura:** `inspect_openpnp_config.py` analizza un `machine.xml` salvato, mentre `openpnp-scripts/HYDRA-UMC/inspect_profile.js` è un modello di script del menu OpenPnP invocato manualmente; entrambi riportano solo classe e conteggi dei componenti e il modello mostra il risultato in una finestra informativa senza inviare comandi alla macchina. *(implementato, testato)*
+* ✅ **Simulazione di passaggio solo tracciabile:** `BoardIdentity` associa identificatori di scheda, ricetta, revisione e lotto prima che `simulate_board_handoff()` applichi la porta condivisa dell'SDK; emette un'impronta SHA-256 deterministica solo per un piano consentito e non ha I/O OpenPnP, seriale o macchina. Campi opzionali `slot_id`/`rack_id`/`table_id` tracciano il reale posizionamento fisico (quale slot feeder, quale rack di stoccaggio e quale tavolo ha usato esattamente questo passaggio) come identità propria e separata, così due posizionamenti della stessa scheda non risultano mai indistinguibili nell'impronta. *(implementato, testato)*
+* ✅ **Simulazione del ciclo produttivo solo tracciabile:** `simulate_board_cycle()` valuta la sequenza ordinata `PREPARE → LOAD → PROCESS → UNLOAD → COMPLETE` sotto uno stato esplicito cella/macchina; ogni passaggio produttivo fallisce chiuso fuori da `READY/IDLE`, e `ABORT` resta separato nel percorso di sicurezza dell'SDK. *(implementato, testato)*
+* ✅ **Contratto di evidenza deterministico:** `docs/BOARD_TRANSFER_EVIDENCE.md` definisce lo schema `1.0` emesso da entrambi i simulatori. Trasporta solo fase, decisione, motivo e impronta di identità consentita; i valori grezzi di scheda, ricetta, revisione e lotto non entrano mai nel record JSON. *(implementato, testato)*
+* ✅ **Messaggi trattenuti e chiavi ripetute:** `mqtt_transport.py` ignora i messaggi trattenuti (il broker li ripropone a ogni riconnessione) e, se riceve un `IdempotencyStore`, risponde a una `idempotency_key` ripetuta con la risposta data la prima volta invece di valutare di nuovo il lavoro. *(implementato, testato in `tests/test_idempotency.py`)*
+* ✅ **Stato della macchina osservato (gli script di eventi di OpenPnP):** OpenPnP non ha un'API RPC, quindi `openpnp-scripts/HYDRA-UMC/Events` contiene script di eventi (`Job.Starting`, `Job.Placement.Complete`, `Job.Finished`, `Machine.AfterHoming`, `Machine.AfterDisabled`) e uno script di menu (`Report_state.js`) che scrivono un piccolo file JSON, in modo atomico, con lo stato che ogni evento implica; `observation.py` lo legge (`OpenPnpStateSource`, `HYDRA_UMC_OPENPNP_STATE_FILE`) e il bridge decide su di esso invece che su quanto afferma il messaggio del lavoro. Un file assente, più vecchio di 15 minuti (`HYDRA_UMC_OPENPNP_STATE_MAX_AGE_SECONDS`), scritto da altri o malformato è una macchina OFFLINE che rifiuta il lavoro; `cmd/status` pubblica lo `state` trattenuto. Gli script sono testati in Node contro le poche classi Java che usano; non sono stati eseguiti dentro OpenPnP e i nomi degli eventi sono quelli documentati. *(implementato, non provato in OpenPnP)*
+* ✅ **Segnali di passaggio SMEMA:** `SmemaReceiver` (la cella riceve schede da una macchina a monte: legge `board available`, pilota `machine ready`) e `SmemaSender` (la cella consegna schede a una macchina a valle: pilota `board available`, legge `machine ready`) di `smema.py` partecipano all'handshake SMEMA di una linea SMT. La lettura è filtrata contro i rimbalzi; PILOTARE un'uscita passa per il gate condiviso: solo con una cella READY, una macchina osservata a riposo e l'attrezzatura vuota (o una scheda pronta), e un'uscita viene ritirata appena la sua condizione smette di valere, a ogni abort e quando una linea non può essere scritta. `cmd/smema_status`, `cmd/smema_ready` e `cmd/smema_offer` la espongono. Testato contro un vicino simulato; i pin della CM5 richiedono una scheda di interfaccia per il cavo da 12 a 24 V. *(implementato, solo simulato)*
+* ✅ **Tracciabilità per scheda:** `traceability.py` riunisce i passaggi di ogni scheda e, alla fine del suo ciclo, pubblica la traccia su `hydra/bridges/openpnp/event/board` (QoS 1, non trattenuta) e invia a HYDRA-UMC-DATALAKE un campione `board_handoff` per passo sotto `board-<impronta>` più un `production_event` (`good`, `cycleTimeS`) da cui HYDRA-UMC-PRODUCTION-REPORTS calcola l'OEE. Per impostazione predefinita esce solo l'impronta; gli identificatori si possono includere quando uno stabilimento lo consente. Un data lake fermo non ferma mai la cella: i campioni aspettano e partono con la traccia successiva. *(implementato, testato contro un server HTTP locale)*
+* ✅ **Codice sulla scheda:** `board_code.py` confronta il DataMatrix letto sulla scheda con la scheda del lavoro (`HYDRA_UMC_OPENPNP_BOARD_CODE`: `off` per impostazione predefinita, `advisory` o `required`); un codice diverso viene rifiutato, un lavoro senza scheda prende l'unico codice letto, e ciò che non è un identificatore stabile non è un codice. Il codice arriva dal `POST /read-code` di HYDRA-UMC-VISION-NODE (`VisionNodeCodeSource`). *(implementato, non provato su un'etichetta reale)*
+* ✅ **Ciclo MQTT blindato e risposte oneste:** un payload troppo grande (oltre 16 KiB) o illeggibile, un JSON profondamente annidato e qualsiasi guasto inatteso ricevono un rifiuto sul topic di risultato e non terminano mai il ciclo; `cmd/job` e `cmd/handoff` mantengono spazi di chiavi di idempotenza separati (`job:`/`handoff:`), così un lavoro verificato con il gate può ancora essere passato con la stessa chiave e conserva la sua impronta di identità; le risposte di `cmd/job` riportano `"mode": "simulation-only"` e `"observed": false` (nulla guarda OpenPnP: lo stato della macchina è quello dichiarato dal richiedente) e un ABORT passato di lì dice che nulla è stato fermato; il gate e la traccia del passaggio condividono un'unica regola per gli identificatori di scheda, `cmd/handoff` accetta `slot_id`, `rack_id` e `table_id`, e un `machine.xml` con DOCTYPE viene rifiutato in qualsiasi codifica; il bridge si annuncia su un topic `availability` con Last Will. *(implementato, testato in `tests/test_hardening.py`)*
 
-```text
-HYDRA-UMC-BRIDGE-OPENPNP/
-├── src/
-│   └── hydra_umc_bridge_openpnp/
-│       ├── __init__.py
-│       ├── board_flow.py        # BoardFlow: validazione board_id + porta di passaggio per fase
-│       ├── configuration.py     # Ispeziona un XML macchina OpenPnP senza aprire o modificare alcuna macchina
-│       ├── evidence.py          # Evidenza deterministica e non sensibile da simulazioni solo locali
-│       ├── handoff.py           # Valida/simula un passaggio PCB tracciabile - non importa mai OpenPnP né tocca I/O
-│       ├── observation.py       # Lo stato della macchina scritto dagli script di eventi di OpenPnP, creduto solo finché è recente
-│       ├── smema.py             # Linee SMEMA board available / machine ready, con le regole di sicurezza sulle uscite
-│       ├── traceability.py      # La storia di ogni scheda per il data lake e il rapporto OEE
-│       ├── board_code.py        # Il DataMatrix della scheda confrontato con la scheda del lavoro
-│       └── mqtt_transport.py    # Trasporto MQTT reale - qui non esiste alcun trasporto macchina reale
-├── tests/
-│   ├── test_board_flow.py       # Test di tracciabilità delle schede e fail-safe
-│   ├── test_mqtt_transport.py   # Test di forma evidenza/stato MQTT contro un client broker fittizio
-│   ├── test_mqtt_environment.py # Le credenziali MQTT e il TLS dell'ambiente del servizio arrivano al client
-│   ├── test_observation.py      # Il file di stato e gli script di eventi (eseguiti in Node)
-│   ├── test_smema.py            # Linee SMEMA contro un vicino simulato, e via MQTT
-│   ├── test_traceability.py     # Tracce di scheda, campioni DATALAKE e invio contro un server HTTP locale
-│   ├── test_board_code.py       # Codice della scheda rispetto al lavoro, e la sorgente VISION-NODE
-│   ├── test_hardening.py        # Payload ostili, uno spazio di chiavi per verbo, risposte oneste
-│   ├── openpnp_script_harness.js # Esegue uno script OpenPnP fuori da OpenPnP (supporto ai test)
-│   ├── test_edge_cases.py       # Limiti di identità, rischi nella lettura della configurazione e casi limite del payload
-│   └── test_idempotency.py      # Messaggi trattenuti e chiavi di idempotenza ripetute
-├── tools/
-│   ├── build_test.py            # Compilatore + esecutore di test non mutante (build-test.bat/.sh)
-│   ├── bump_version.py          # Sincronizza pyproject.toml, manifesto e CHANGELOG.md
-│   ├── ci_validate.py           # Base CI priva di dipendenze e non distruttiva (usata da .github/workflows/ci.yml)
-│   ├── inspect_openpnp_config.py # Ispettore CLI in sola lettura per un machine.xml OpenPnP salvato
-│   ├── simulate_cycle.py        # CLI del simulatore di ciclo produttivo, solo tracciabilità
-│   ├── simulate_handoff.py      # CLI del simulatore di passaggio di consegne, solo tracciabilità
-│   ├── _doc_policy.py           # Regole di documentazione condivise dalla famiglia (copia di quella di HYDRA-UMC-SDK, mantenuta sincronizzata)
-│   ├── _readme_parity.py        # Verifica che gli otto README abbiano la stessa struttura (copia di quella di HYDRA-UMC-SDK, mantenuta sincronizzata)
-│   ├── hydra_project_tool.py    # Gli stessi comandi in ogni repository: validate, test, ci, version, status, bump
-│   └── extra_build_steps.py     # I passi di compilazione propri di questo repository oltre al test di compilazione condiviso (i suoi unit test)
-├── docs/
-│   ├── BRIDGE_GUIDE.md          # Ambito, piattaforme compatibili, script, porta di accettazione hardware
-│   └── HANDOFF_EVIDENCE.md      # Cosa conta come evidenza di passaggio reale e cosa questo bridge rifiuta di dedurre
-├── images/
-│   └── HYDRA_UMC_BANNER.svg     # Banner del README
-├── openpnp-scripts/         # Script HYDRA-UMC/ per la cartella Scripts di OpenPnP: gli hook degli eventi (lavoro, posizionamento, macchina) e il rapporto di stato
-├── inspect-openpnp-config.sh / inspect-openpnp-config.bat # Ispezione in sola lettura di un machine.xml salvato (senza avviare OpenPnP, senza movimento)
-├── build-test.bat / build-test.sh  # Solo valida, non modifica mai il repository
-├── build.bat / build.sh            # Valida e, solo in caso di successo, aggiorna versione + CHANGELOG
-├── pyproject.toml               # Metadati del pacchetto; dipende da HYDRA-UMC-SDK (git)
-├── hydra-umc.project.json       # Manifesto dell'ecosistema (versione, maturità, famiglia)
-├── CHANGELOG.md
-├── CODE_OF_CONDUCT.md / CONTRIBUTING.md / SECURITY.md / SUPPORT.md
-├── LICENSE / LICENSE.md
-└── README.md / README_*.md      # Questo file e le sue 6 traduzioni
+## 🔒 Sicurezza e protezione
+
+| Minaccia | Difesa | Dove |
+|---|---|---|
+| Un lavoro per una cella o macchina che non è in stato sicuro | Ogni lavoro passa dalla porta condivisa `evaluate_job()` dell'SDK, che fallisce chiusa; il bridge non ha una logica propria di accettazione | SDK `bridge_contract` |
+| Dati di lavoro smisurati | Al massimo 32 parametri, chiavi fino a 64 caratteri, valori fino a 1024, identificatori fino a 128 (`MAX_PARAMETERS`, `MAX_PARAMETER_KEY_CHARS`, `MAX_PARAMETER_VALUE_CHARS`, `MAX_IDENTIFIER_CHARS`) | SDK `bridge_contract` |
+| Un ordine ripetuto o rinviato | Un `IdempotencyStore` ricorda ogni chiave per 24 ore e al massimo 10 000 voci; una ripetizione riceve la prima risposta invece di essere valutata di nuovo | SDK `job_intake` |
+| Un payload MQTT enorme o ostile | Un payload oltre 16 KiB, un JSON illeggibile o molto annidato e qualsiasi errore imprevisto ricevono un rifiuto sul topic di risultato e non terminano mai il ciclo | `mqtt_transport.py` |
+| La scheda sbagliata nella macchina | `board_code.py` legge il DataMatrix e lo confronta con la scheda del lavoro; `HYDRA_UMC_OPENPNP_BOARD_CODE` è `off`, `advisory` o `required` | `board_code.py` |
+| Uno stato OpenPnP scaduto o falso | Il file di stato è affidabile solo finché è fresco (15 minuti per impostazione predefinita), al massimo 16 KiB, scritto dall'origine `openpnp-events`; una parola sconosciuta è `OFFLINE` | `observation.py` |
+| Dati di tracciabilità illimitati e uscite SMEMA non sicure | Al massimo 256 tracce aperte e 5000 campioni in attesa (inviati a lotti di 500); gli identificatori di scheda rispettano `^[A-Za-z0-9][A-Za-z0-9._-]{0,95}$`; le uscite SMEMA obbediscono alle regole di sicurezza della cella | `traceability.py`, `smema.py`, `board_flow.py` |
+| Un comando trattenuto rieseguito alla riconnessione | Un messaggio `cmd/` trattenuto viene ignorato alla riconnessione | `mqtt_transport.py` |
+
+**Cosa non fa mai:** non è un driver di movimento di posizionamento e non apre né modifica mai la macchina OpenPnP quando ne ispeziona l'XML.
+
+## 🔌 Interfacce
+
+Topic sotto `hydra/bridges/openpnp/`; non c'è un verbo di arresto (`STOP_VERBS` è vuoto).
+
+| Topic o rotta | Cosa porta |
+|---|---|
+| `cmd/status`, `cmd/job`, `cmd/handoff` | comandi in ingresso; ognuno riceve risposta su `<verbo>/result` |
+| `cmd/smema_offer`, `cmd/smema_ready`, `cmd/smema_status` | l'handshake SMEMA con i vicini della linea |
+| `state`, `availability`, `event/board` | lo stato, `online`/`offline` e i record di ogni scheda (`board_handoff`, `production_event`, versione schema `1.0`) per il data lake e il rapporto OEE |
+
+## ⚙️ Configurazione
+
+| Variabile | Predefinito | Cosa imposta |
+|---|---|---|
+| `HYDRA_UMC_OPENPNP_BOARD_CODE` | `off` | `off`, `advisory` o `required`; un valore sconosciuto equivale a `off` |
+| `HYDRA_UMC_OPENPNP_STATE_FILE` | non impostato | percorso del file scritto dagli script di eventi di OpenPnP; non impostato significa nessuna fonte di stato |
+| `HYDRA_UMC_OPENPNP_STATE_MAX_AGE_SECONDS` | `900` | quanto può invecchiare il file di stato prima di non essere più affidabile |
+| `HYDRA_MQTT_USERNAME` | nessuno | Il nome utente MQTT; il broker lo lega a un prefisso di ID client |
+| `HYDRA_MQTT_PASSWORD` | nessuno | La password; valida solo insieme al nome utente |
+| `HYDRA_MQTT_PASSWORD_FILE` | nessuno | La password letta da un file (segreto Docker o systemd); ignorata se `HYDRA_MQTT_PASSWORD` è impostata |
+| `HYDRA_MQTT_TLS_CA` | nessuno | Il file della CA che ha firmato il certificato del broker: la connessione è TLS e il certificato viene verificato |
+| `HYDRA_MQTT_TLS` | disattivato | `1` attiva TLS, verificato con le CA fidate del sistema |
+| `HYDRA_MQTT_TLS_CERT` / `HYDRA_MQTT_TLS_KEY` | nessuno | Il certificato client e la sua chiave per un broker che richiede TLS reciproco; servono entrambi |
+
+## 🚀 Avvio rapido
+
+Richiede Python 3.11 o successivo. I test e gli script di build si aspettano `HYDRA-UMC-SDK` clonato accanto a questo repository (`../HYDRA-UMC-SDK`) o indicato con `HYDRA_UMC_SDK_ROOT`.
+
+Provalo senza hardware (questo verifica tutto il bridge con i suoi emulatori e test double):
+
+```bash
+py -3 tools/build_test.py          # Windows
+python3 tools/build_test.py         # Linux, macOS
 ```
 
----
+Avviare il servizio (non c'è uno script da console: il servizio è il `run_forever()` del trasporto MQTT, che chiami dal tuo codice di avvio):
 
-## 4. ⚙️ COMPILAZIONE ED ESECUZIONE
+```python
+from hydra_umc_bridge_openpnp.mqtt_transport import OpenPnpMqttBridge, run_forever
+bridge = OpenPnpMqttBridge(cell_state=lambda: cell_state)   # state_source, smema_*, trace_recorder are optional
+run_forever(bridge, host="192.168.0.180")                  # serves cmd/# forever
+```
+
+Nome utente, password e file TLS vengono dalle variabili `HYDRA_MQTT_*` (vedi Configurazione); il codice sopra non ha bisogno di credenziali proprie.
+
+## 🧪 Test
+
+208 casi `unittest` automatici si eseguono con `python tools/build_test.py` (che compila anche ogni modulo). I test non richiedono hardware, rete né pacchetti opzionali: quelli che richiederebbero `paho-mqtt`, `pyserial` o una libreria del produttore usano un sostituto o vengono saltati se il pacchetto manca.
+
+| File di test | Test | Cosa copre |
+|---|---|---|
+| `test_board_flow.py`, `test_board_code.py`, `test_observation.py` | - | fasi di passaggio, il codice scheda, il file di stato e gli script di eventi |
+| `test_smema.py`, `test_traceability.py` | - | SMEMA contro un vicino in memoria; la traccia, i campioni del data lake e una vera destinazione HTTP locale |
+| `test_mqtt_transport.py`, `test_mqtt_environment.py`, `test_hardening.py`, `test_edge_cases.py`, `test_idempotency.py` | - | smistamento dei topic, credenziali dell'ambiente, client ostili, casi limite, chiavi ripetute |
+
+La CI esegue `HYDRA_UMC_CI=1 python tools/ci_validate.py`, che controlla il manifesto, i documenti, gli otto README e le immagini, ed esegue i test con una copia dell'SDK.
+
+## 🏗️ Compilazione e rilascio
 
 Richiede Python 3.11+. `tools/build_test.py` si aspetta che `HYDRA-UMC-SDK` sia clonato come directory fratella (`../HYDRA-UMC-SDK`) o indicato tramite la variabile d'ambiente `HYDRA_UMC_SDK_ROOT`.
 
@@ -170,21 +199,74 @@ bash build-test.sh
 bash build.sh
 ```
 
-`build-test` compila ogni modulo sotto `src/` con `py_compile` ed esegue l'intera suite `unittest` individuata sotto `tests/` (`test_board_flow.py`, `test_mqtt_transport.py` - 68 test), dimostrando il rifiuto per tracciabilità delle schede e la porta fail-safe tra tutto il resto coperto — non modifica mai il repository. `build` esegue prima quella stessa validazione e, solo in caso di successo, chiama `tools/bump_version.py` per sincronizzare la versione in `pyproject.toml`, `hydra-umc.project.json` e `CHANGELOG.md`. Non esiste ancora un comando `run` macchina reale — serve un'integrazione OpenPnP validata.
+`build-test` compila ogni modulo sotto `src/` con `py_compile` ed esegue l'intera suite `unittest` individuata sotto `tests/` (`test_board_flow.py`, `test_mqtt_transport.py` - 208 test), dimostrando il rifiuto per tracciabilità delle schede e la porta fail-safe tra tutto il resto coperto — non modifica mai il repository. `build` esegue prima quella stessa validazione e, solo in caso di successo, chiama `tools/bump_version.py` per sincronizzare la versione in `pyproject.toml`, `hydra-umc.project.json` e `CHANGELOG.md`. Non esiste ancora un comando `run` macchina reale — serve un'integrazione OpenPnP validata.
 
----
+## 🩺 Risoluzione dei problemi
 
-## ✅ STATO ATTUALE E PROSSIMI PASSI
+| Vedi | Perché | Fai |
+|---|---|---|
+| `ModuleNotFoundError: hydra_umc_sdk` | L'SDK non è installato né accanto a questo repository | Clona `HYDRA-UMC-SDK` accanto a questo repository o imposta `HYDRA_UMC_SDK_ROOT` |
+| `paho-mqtt is not installed` | Il client MQTT è un extra opzionale | `pip install ".[mqtt]"` (serve `paho-mqtt` 2.1 o successivo, inferiore a 3) |
+| `password was given without a username` | Le credenziali MQTT richiedono entrambe le parti | Imposta anche `HYDRA_MQTT_USERNAME`, non solo la password |
+| `could not reach the MQTT broker after N attempts` | Il broker è spento, l'indirizzo è sbagliato o la porta è chiusa | Avvia `HYDRA-UMC-MQTT-BROKER` e controlla host e porta dati al trasporto (5 tentativi a 2 secondi di distanza); un errore dell'handshake TLS non viene ritentato |
+| `the MQTT broker refused the connection` | Il broker ha rifiutato la credenziale (o non ha risposto entro il tempo limite) | Controlla `HYDRA_MQTT_USERNAME` e la password; l'ID client deve iniziare con il prefisso che il broker ha legato alla credenziale |
+| `"allowed": false` + `reason` | La porta condivisa o una guardia ha rifiutato l'ordine | Leggi `reason` e correggi la causa; non riprovare alla cieca |
+| `OFFLINE` although OpenPnP is running | Il file di stato manca, è più vecchio del limite o è scritto da un'altra origine | Installa gli script di `openpnp-scripts/` in OpenPnP, punta `HYDRA_UMC_OPENPNP_STATE_FILE` al file che scrivono e alza `HYDRA_UMC_OPENPNP_STATE_MAX_AGE_SECONDS` solo se la macchina resta a lungo inattiva |
 
-**Reale oggi:** versione `0.2.0`, un nucleo di passaggio PCB tracciabile testato in locale (`BoardFlow`) appoggiato sulla porta di lavoro condivisa di `HYDRA-UMC-SDK`, un vero trasporto MQTT di comandi/evidenza (`mqtt_transport.py`), una suite `unittest` deterministica di 68 test, un ispettore di profilo salvato che riporta evidenza reale di attuatori/segnalatori/punte ugello OpenPnP insieme ai conteggi di teste/telecamere/driver/alimentatori, un modello visibile di menu OpenPnP in sola lettura, simulazioni di passaggio/ciclo legate all'identità e un contratto JSON di evidenza non sensibile verificato da CI senza I/O macchina.
+## 📂 Struttura del repository
+
+<p align="center">
+  <img src="images/repository-structure.svg" alt="Repository structure of HYDRA-UMC-BRIDGE-OPENPNP" width="100%">
+</p>
+
+<details>
+<summary>Versione testuale dell'albero</summary>
+
+```text
+HYDRA-UMC-BRIDGE-OPENPNP/
+├── src/hydra_umc_bridge_openpnp/
+│   ├── board_flow.py                                        fasi di passaggio delle schede (non un driver di posizionamento)
+│   ├── board_code.py                                        DataMatrix della scheda contro il lavoro
+│   ├── observation.py                                       file di stato di OpenPnP, affidabile se fresco
+│   ├── smema.py                                             l'handshake SMEMA con i vicini della linea
+│   ├── traceability.py                                      la storia di ogni scheda, per il data lake e l'OEE
+│   ├── handoff.py                                           passaggio tracciabile, simulato
+│   ├── evidence.py                                          prove locali deterministiche
+│   ├── configuration.py                                     controllo XML di sola lettura
+│   └── mqtt_transport.py                                    trasporto MQTT di comandi, stato ed eventi di scheda
+├── tests/                                                   208 test, con fixture SMEMA e di tracciabilità
+├── docs/                                                    guida del bridge, prove di passaggio
+├── openpnp-scripts/                                         script di eventi che scrivono il file di stato esposto da OpenPnP
+├── tools/                                                   esecutore di build e test, aumento di versione, validatore CI, generatori e controlli di README e immagini
+├── images/                                                  banner e immagini del README
+├── .github/                                                 workflow CI e modelli di segnalazione
+├── pyproject.toml                                           metadati del pacchetto e dipendenze
+├── hydra-umc.project.json                                   manifesto: versione, maturità, famiglia
+├── CHANGELOG.md                                             cosa è cambiato in ogni versione
+├── build.sh build.bat                                       script di build (non cambiano mai la versione)
+├── build-test.sh build-test.bat                             script di build (non cambiano mai la versione)
+├── test.sh test.bat                                         eseguono i test
+├── inspect-openpnp-config.sh / inspect-openpnp-config.bat   controllo di sola lettura di un XML di macchina
+└── SECURITY.md SUPPORT.md CONTRIBUTING.md CODE_OF_CONDUCT.md LICENSE LICENSE.md
+```
+
+</details>
+
+## 🗺️ Roadmap e limiti noti
+
+**Limiti noti oggi**
+
+**Reale oggi:** versione `0.2.0`, un nucleo di passaggio PCB tracciabile testato in locale (`BoardFlow`) appoggiato sulla porta di lavoro condivisa di `HYDRA-UMC-SDK`, un vero trasporto MQTT di comandi/evidenza (`mqtt_transport.py`), una suite `unittest` deterministica di 208 test, un ispettore di profilo salvato che riporta evidenza reale di attuatori/segnalatori/punte ugello OpenPnP insieme ai conteggi di teste/telecamere/driver/alimentatori, un modello visibile di menu OpenPnP in sola lettura, simulazioni di passaggio/ciclo legate all'identità e un contratto JSON di evidenza non sensibile verificato da CI senza I/O macchina.
 
 **Confine di integrazione:** OpenPnP mantiene sempre la cinematica di posizionamento, il controllo dei feeder e il movimento grezzo; questo ponte regola e traccia solo il *passaggio* attorno ad esso — carico da parte del robot, completamento del posizionamento nativo, scarico da parte del robot.
 
 **Ancora da fare:** non viene rivendicata alcuna connessione dal vivo a una macchina OpenPnP — l'estensione/API concreta verrà scelta solo in una sessione isolata non produttiva con un operatore presente.
 
----
+## 🌍 Lingue
 
-## 🔗 Progetti Correlati
+Questo README e i documenti del repository esistono in otto lingue: inglese, spagnolo, tedesco, francese, italiano, giapponese, cinese e portoghese (Portogallo). Sono scritti insieme e la CI verifica che gli otto file abbiano le stesse sezioni e gli stessi link. Questo repository non ha uno schermo né un catalogo di messaggi propri, quindi non ci sono stringhe di interfaccia da tradurre.
+
+## 🔗 Progetti correlati
 
 Questo progetto fa parte dell'ecosistema robotico HYDRA-UMC dello stesso autore (JuanenRac / Electro Hobby 3D). Vale la pena conoscerlo, poiché una richiesta potrebbe in realtà riguardare uno di questi invece di questo repository.
 
@@ -277,20 +359,28 @@ Questo progetto fa parte dell'ecosistema robotico HYDRA-UMC dello stesso autore 
 - **[HYDRA-UMC-OPS-AGENT](https://github.com/JuanenRac/HYDRA-UMC-OPS-AGENT)** — coordinatore di incidenti di manutenzione: un ruolo edge a basso privilegio raccoglie uno snapshot di inventario/salute sanificato, un ruolo control-plane lo rende in sola lettura e chiede a un provider di IA di suggerire una diagnosi - non applica mai una patch né distribuisce nulla.
 - **[HYDRA-UMC-DEV-SERVER](https://github.com/JuanenRac/HYDRA-UMC-DEV-SERVER)** — host di sviluppo riproducibile (Raspberry Pi 5 / CM5) che conserva il codice sorgente dell'ecosistema ed esegue attività delimitate di build/test tramite una coda durevole; un ruolo di sviluppo dedicato, esplicitamente distinto da un CM5 operativo.
 
----
+## 📚 Documentazione
 
-## 📚 Documentazione e Comunità
+Dove leggere di più:
 
-- **[CONTRIBUTING.md](CONTRIBUTING.md)** — stack tecnologico e linee guida di codifica per una pull request.
-- **[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)** — gli standard di comportamento attesi in questa comunità.
-- **[SECURITY.md](SECURITY.md)** — come segnalare una vulnerabilità, e le reali aree di attenzione sulla sicurezza di questo progetto.
-- **[SUPPORT.md](SUPPORT.md)** — dove porre domande e segnalare bug.
-- **[LICENSE.md](LICENSE.md)** — la licenza propria di questo progetto.
+* [docs/BRIDGE_GUIDE.md](docs/BRIDGE_GUIDE.md) - ambito, flusso delle schede, file di stato, SMEMA, tracciabilità, script
+* [docs/BOARD_TRANSFER_EVIDENCE.md](docs/BOARD_TRANSFER_EVIDENCE.md) - quali prove lascia un passaggio tracciabile
+* [Base di sicurezza dell'ecosistema](https://github.com/JuanenRac/HYDRA-UMC-DOCS/blob/main/docs/SECURITY_BASELINE.md)
+* [Modello delle minacce dell'ecosistema](https://github.com/JuanenRac/HYDRA-UMC-DOCS/blob/main/docs/THREAT_MODEL.md)
+* [Registro delle modifiche di questo repository](CHANGELOG.md)
+* [Licenza di questo repository](LICENSE.md)
+
+## 🤝 Contribuire e comunità
+
+* Prima di una pull request esegui `HYDRA_UMC_CI=1 py -3 tools/ci_validate.py` (oppure `HYDRA_UMC_CI=1 python3 tools/ci_validate.py`): deve stampare `CI_VALIDATION=PASS`. Non eseguire `build.sh` né `build.bat` per questa verifica; compilare non è verificare.
+* I otto README sono scritti da un'unica fonte in HYDRA-UMC-DOCS; non modificarli a mano. Cambia la fonte e riscrivili con `tools/make_readmes.py`.
+* Non affermare in un README ciò che non è stato eseguito: scrivi «simulato» o «non provato su hardware» quando è la verità.
+* Vedi [CONTRIBUTING.md](CONTRIBUTING.md), il [codice di condotta](CODE_OF_CONDUCT.md), [SECURITY.md](SECURITY.md) e [SUPPORT.md](SUPPORT.md).
 
 ## 👤 AUTORE
-**JuanenRac** (Electro Hobby 3D)
-📧 electrohobby3d@gmail.com
-📺 [youtube.com/@electrohobby3d](https://youtube.com/@electrohobby3d)
+
+**JuanenRac (Electro Hobby 3D)** · electrohobby3d@gmail.com
 
 ## 📜 LICENZA
-GPL-3.0-or-later - Vedi LICENSE per i dettagli.
+
+GPL-3.0-or-later - [LICENSE](LICENSE).

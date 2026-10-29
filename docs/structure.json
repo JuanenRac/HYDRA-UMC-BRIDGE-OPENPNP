@@ -1,0 +1,375 @@
+{
+  "repo": "HYDRA-UMC-BRIDGE-OPENPNP",
+  "ecosystem": "hydra",
+  "svg": "en",
+  "cards": [
+    {
+      "name": "src/hydra_umc_bridge_openpnp/",
+      "span": 3,
+      "accent": "a",
+      "sub": {
+        "en": "the bridge, in Python",
+        "es": "el bridge, en Python",
+        "de": "der Bridge in Python",
+        "fr": "le bridge, en Python",
+        "it": "il bridge, in Python",
+        "ja": "Python のブリッジ",
+        "zh": "用 Python 编写的桥接",
+        "pt": "o bridge, em Python"
+      },
+      "rows": [
+        {
+          "name": "board_flow.py",
+          "desc": {
+            "en": "PCB hand-off phases (not a placement driver)",
+            "es": "fases de entrega de placas (no es un controlador de colocación)",
+            "de": "Phasen der Platinenübergabe (kein Bestückungstreiber)",
+            "fr": "phases de transfert des cartes (pas un pilote de placement)",
+            "it": "fasi di passaggio delle schede (non un driver di posizionamento)",
+            "ja": "基板受け渡しの段階（実装動作のドライバーではない）",
+            "zh": "电路板交接阶段（不是贴装驱动）",
+            "pt": "fases de entrega de placas (não é um controlador de colocação)"
+          }
+        },
+        {
+          "name": "board_code.py",
+          "desc": {
+            "en": "board DataMatrix against the job",
+            "es": "DataMatrix de la placa frente al trabajo",
+            "de": "Platinen-DataMatrix gegen den Auftrag",
+            "fr": "DataMatrix de la carte face au travail",
+            "it": "DataMatrix della scheda contro il lavoro",
+            "ja": "基板の DataMatrix とジョブの照合",
+            "zh": "电路板 DataMatrix 与任务比对",
+            "pt": "DataMatrix da placa face ao trabalho"
+          }
+        },
+        {
+          "name": "observation.py",
+          "desc": {
+            "en": "OpenPnP state file, trusted while fresh",
+            "es": "fichero de estado de OpenPnP, fiable si es reciente",
+            "de": "OpenPnP-Zustandsdatei, nur solange frisch",
+            "fr": "fichier d'état d'OpenPnP, fiable s'il est frais",
+            "it": "file di stato di OpenPnP, affidabile se fresco",
+            "ja": "OpenPnP の状態ファイル（新しい間だけ信頼）",
+            "zh": "OpenPnP 状态文件，新鲜时才可信",
+            "pt": "ficheiro de estado do OpenPnP, fiável se fresco"
+          }
+        },
+        {
+          "name": "smema.py",
+          "desc": {
+            "en": "the SMEMA handshake with the neighbours on the line",
+            "es": "el protocolo SMEMA con los vecinos de la línea",
+            "de": "der SMEMA-Handshake mit den Nachbarn in der Linie",
+            "fr": "la poignée de main SMEMA avec les voisins de la ligne",
+            "it": "l'handshake SMEMA con i vicini della linea",
+            "ja": "ラインの隣接機との SMEMA ハンドシェイク",
+            "zh": "与产线相邻设备的 SMEMA 握手",
+            "pt": "o handshake SMEMA com os vizinhos da linha"
+          }
+        },
+        {
+          "name": "traceability.py",
+          "desc": {
+            "en": "the story of each board, for the data lake and OEE",
+            "es": "la historia de cada placa, para el data lake y el OEE",
+            "de": "die Geschichte jeder Platine, für den Data Lake und OEE",
+            "fr": "l'histoire de chaque carte, pour le data lake et l'OEE",
+            "it": "la storia di ogni scheda, per il data lake e l'OEE",
+            "ja": "各基板の履歴（データレイクと OEE 用）",
+            "zh": "每块板的履历，供数据湖和 OEE 使用",
+            "pt": "a história de cada placa, para o data lake e o OEE"
+          }
+        },
+        {
+          "name": "handoff.py",
+          "desc": {
+            "en": "traceable hand-off, simulated",
+            "es": "entrega trazable, simulada",
+            "de": "nachvollziehbare Übergabe, simuliert",
+            "fr": "transfert traçable, simulé",
+            "it": "passaggio tracciabile, simulato",
+            "ja": "追跡可能な受け渡し（シミュレーション）",
+            "zh": "可追溯的交接（模拟）",
+            "pt": "entrega rastreável, simulada"
+          }
+        },
+        {
+          "name": "evidence.py",
+          "desc": {
+            "en": "deterministic local evidence",
+            "es": "evidencia local determinista",
+            "de": "deterministische lokale Nachweise",
+            "fr": "preuves locales déterministes",
+            "it": "prove locali deterministiche",
+            "ja": "決定論的なローカルの証拠",
+            "zh": "确定性的本地证据",
+            "pt": "evidência local determinista"
+          }
+        },
+        {
+          "name": "configuration.py",
+          "desc": {
+            "en": "read-only check of a machine XML",
+            "es": "revisión de solo lectura de un XML",
+            "de": "schreibgeschützte XML-Prüfung",
+            "fr": "contrôle XML en lecture seule",
+            "it": "controllo XML di sola lettura",
+            "ja": "XML の読み取り専用検査",
+            "zh": "只读检查 XML",
+            "pt": "verificação só de leitura de um XML"
+          }
+        },
+        {
+          "name": "mqtt_transport.py",
+          "desc": {
+            "en": "MQTT command, state and board-event transport",
+            "es": "transporte MQTT de órdenes, estado y eventos de placa",
+            "de": "MQTT-Transport für Befehle, Status und Platinenereignisse",
+            "fr": "transport MQTT des commandes, de l'état et des événements de carte",
+            "it": "trasporto MQTT di comandi, stato ed eventi di scheda",
+            "ja": "MQTT のコマンド・状態・基板イベントのトランスポート",
+            "zh": "MQTT 命令、状态与板卡事件传输",
+            "pt": "transporte MQTT de comandos, estado e eventos de placa"
+          }
+        }
+      ]
+    },
+    {
+      "name": {
+        "en": "tests, docs and tools",
+        "es": "pruebas, docs y herramientas",
+        "de": "Tests, Doku und Werkzeuge",
+        "fr": "tests, docs et outils",
+        "it": "test, documenti e strumenti",
+        "ja": "テスト・文書・ツール",
+        "zh": "测试、文档和工具",
+        "pt": "testes, docs e ferramentas"
+      },
+      "kind": "group",
+      "span": 3,
+      "accent": "b",
+      "columns": 2,
+      "rows": [
+        {
+          "name": "tests/",
+          "desc": {
+            "en": "208 tests, with SMEMA and traceability fixtures",
+            "es": "208 pruebas, con montajes de SMEMA y trazabilidad",
+            "de": "208 Tests, mit SMEMA- und Rückverfolgbarkeits-Fixtures",
+            "fr": "208 tests, avec des bancs SMEMA et de traçabilité",
+            "it": "208 test, con fixture SMEMA e di tracciabilità",
+            "ja": "208 件（SMEMA とトレーサビリティのフィクスチャ付き）",
+            "zh": "208 项测试（含 SMEMA 与可追溯夹具）",
+            "pt": "208 testes, com fixtures de SMEMA e rastreabilidade"
+          }
+        },
+        {
+          "name": "docs/",
+          "desc": {
+            "en": "bridge guide, hand-off evidence",
+            "es": "guía del bridge, evidencia de entrega",
+            "de": "Bridge-Leitfaden, Übergabenachweise",
+            "fr": "guide du bridge, preuves de transfert",
+            "it": "guida del bridge, prove di passaggio",
+            "ja": "ブリッジガイド、受け渡しの証拠",
+            "zh": "桥接指南、交接证据",
+            "pt": "guia do bridge, evidência de entrega"
+          }
+        },
+        {
+          "name": "openpnp-scripts/",
+          "desc": {
+            "en": "event scripts that write the state file OpenPnP exposes",
+            "es": "scripts de eventos que escriben el fichero de estado que expone OpenPnP",
+            "de": "Ereignisskripte, die die von OpenPnP bereitgestellte Zustandsdatei schreiben",
+            "fr": "scripts d'événements qui écrivent le fichier d'état exposé par OpenPnP",
+            "it": "script di eventi che scrivono il file di stato esposto da OpenPnP",
+            "ja": "OpenPnP が公開する状態ファイルを書くイベントスクリプト",
+            "zh": "写入 OpenPnP 所暴露状态文件的事件脚本",
+            "pt": "scripts de eventos que escrevem o ficheiro de estado que o OpenPnP expõe"
+          }
+        },
+        {
+          "name": "tools/",
+          "desc": {
+            "en": "project tools, CI checks, version bump",
+            "es": "herramientas del proyecto, comprobaciones de CI, subida de versión",
+            "de": "Projektwerkzeuge, CI-Prüfungen, Versionserhöhung",
+            "fr": "outils du projet, vérifications CI, montée de version",
+            "it": "strumenti del progetto, controlli CI, aumento di versione",
+            "ja": "プロジェクトのツール、CI の検査、バージョンの引き上げ",
+            "zh": "项目工具、CI 检查、版本提升",
+            "pt": "ferramentas do projeto, verificações de CI, subida de versão"
+          },
+          "tree_desc": {
+            "en": "build and test runner, version bump, CI validator, README and picture generators and checks",
+            "es": "ejecutor de compilación y pruebas, subida de versión, validador de CI, generadores y comprobaciones de README e imágenes",
+            "de": "Build- und Testläufer, Versionserhöhung, CI-Prüfer, README- und Bildgeneratoren samt Prüfungen",
+            "fr": "exécuteur de build et de tests, montée de version, validateur CI, générateurs et vérifications des README et des images",
+            "it": "esecutore di build e test, aumento di versione, validatore CI, generatori e controlli di README e immagini",
+            "ja": "ビルド・テスト実行、バージョン引き上げ、CI 検証、README と図の生成・検査",
+            "zh": "构建与测试运行器、版本提升、CI 校验、README 与图片的生成和检查",
+            "pt": "executor de compilação e testes, subida de versão, validador de CI, geradores e verificações de README e imagens"
+          }
+        },
+        {
+          "name": "images/",
+          "desc": {
+            "en": "banner and the pictures of the README",
+            "es": "banner y las imágenes del README",
+            "de": "Banner und die Bilder der README",
+            "fr": "bannière et images du README",
+            "it": "banner e immagini del README",
+            "ja": "バナーと README の図",
+            "zh": "横幅图与 README 的图片",
+            "pt": "faixa e imagens do README"
+          }
+        },
+        {
+          "name": ".github/",
+          "desc": {
+            "en": "CI workflow and issue templates",
+            "es": "flujo de CI y plantillas de incidencias",
+            "de": "CI-Workflow und Issue-Vorlagen",
+            "fr": "workflow CI et modèles de tickets",
+            "it": "workflow CI e modelli di segnalazione",
+            "ja": "CI ワークフローと Issue テンプレート",
+            "zh": "CI 工作流和 Issue 模板",
+            "pt": "fluxo de CI e modelos de questões"
+          }
+        }
+      ]
+    },
+    {
+      "name": {
+        "en": "project files",
+        "es": "ficheros del proyecto",
+        "de": "Projektdateien",
+        "fr": "fichiers du projet",
+        "it": "file del progetto",
+        "ja": "プロジェクトのファイル",
+        "zh": "项目文件",
+        "pt": "ficheiros do projeto"
+      },
+      "kind": "group",
+      "span": 3,
+      "accent": "c",
+      "columns": 2,
+      "rows": [
+        {
+          "name": "pyproject.toml",
+          "desc": {
+            "en": "package metadata and dependencies",
+            "es": "metadatos del paquete y dependencias",
+            "de": "Paketmetadaten und Abhängigkeiten",
+            "fr": "métadonnées du paquet et dépendances",
+            "it": "metadati del pacchetto e dipendenze",
+            "ja": "パッケージのメタデータと依存関係",
+            "zh": "包元数据与依赖",
+            "pt": "metadados do pacote e dependências"
+          }
+        },
+        {
+          "name": "hydra-umc.project.json",
+          "desc": {
+            "en": "manifest: version, maturity, family",
+            "es": "manifiesto: versión, madurez, familia",
+            "de": "Manifest: Version, Reifegrad, Familie",
+            "fr": "manifeste : version, maturité, famille",
+            "it": "manifesto: versione, maturità, famiglia",
+            "ja": "マニフェスト：バージョン・成熟度・ファミリー",
+            "zh": "清单：版本、成熟度、系列",
+            "pt": "manifesto: versão, maturidade, família"
+          }
+        },
+        {
+          "name": "CHANGELOG.md",
+          "desc": {
+            "en": "what changed in each version",
+            "es": "qué cambió en cada versión",
+            "de": "was sich in jeder Version geändert hat",
+            "fr": "ce qui a changé à chaque version",
+            "it": "cosa è cambiato in ogni versione",
+            "ja": "各バージョンの変更点",
+            "zh": "每个版本的变化",
+            "pt": "o que mudou em cada versão"
+          }
+        },
+        {
+          "name": "build.sh  build.bat",
+          "tree_name": "build.sh build.bat",
+          "desc": {
+            "en": "build scripts (they never change the version)",
+            "es": "scripts de compilación (nunca cambian la versión)",
+            "de": "Build-Skripte (ändern die Version nie)",
+            "fr": "scripts de build (ils ne changent jamais la version)",
+            "it": "script di build (non cambiano mai la versione)",
+            "ja": "ビルドスクリプト（バージョンは変えません）",
+            "zh": "构建脚本（从不改变版本）",
+            "pt": "scripts de compilação (nunca mudam a versão)"
+          }
+        },
+        {
+          "name": "build-test.sh  build-test.bat",
+          "tree_name": "build-test.sh build-test.bat",
+          "desc": {
+            "en": "build scripts (they never change the version)",
+            "es": "scripts de compilación (nunca cambian la versión)",
+            "de": "Build-Skripte (ändern die Version nie)",
+            "fr": "scripts de build (ils ne changent jamais la version)",
+            "it": "script di build (non cambiano mai la versione)",
+            "ja": "ビルドスクリプト（バージョンは変えません）",
+            "zh": "构建脚本（从不改变版本）",
+            "pt": "scripts de compilação (nunca mudam a versão)"
+          }
+        },
+        {
+          "name": "test.sh  test.bat",
+          "tree_name": "test.sh test.bat",
+          "desc": {
+            "en": "run the tests",
+            "es": "ejecutan las pruebas",
+            "de": "führen die Tests aus",
+            "fr": "lancent les tests",
+            "it": "eseguono i test",
+            "ja": "テストを実行",
+            "zh": "运行测试",
+            "pt": "executam os testes"
+          }
+        },
+        {
+          "name": "inspect-openpnp-config.*",
+          "desc": {
+            "en": "read-only check of a machine XML",
+            "es": "revisión de solo lectura de un XML de máquina",
+            "de": "schreibgeschützte Prüfung eines Maschinen-XML",
+            "fr": "contrôle en lecture seule d'un XML de machine",
+            "it": "controllo di sola lettura di un XML di macchina",
+            "ja": "機械 XML の読み取り専用検査",
+            "zh": "只读检查机器 XML",
+            "pt": "verificação só de leitura de um XML de máquina"
+          },
+          "tree_name": "inspect-openpnp-config.sh / inspect-openpnp-config.bat"
+        },
+        {
+          "name": "SECURITY  SUPPORT  CONTRIBUTING  LICENSE",
+          "tree_name": "SECURITY.md SUPPORT.md CONTRIBUTING.md CODE_OF_CONDUCT.md LICENSE LICENSE.md",
+          "desc": {
+            "en": "community and licence files",
+            "es": "comunidad y licencia",
+            "de": "Community und Lizenz",
+            "fr": "communauté et licence",
+            "it": "comunità e licenza",
+            "ja": "コミュニティとライセンス",
+            "zh": "社区与许可证",
+            "pt": "comunidade e licença"
+          },
+          "tree_desc": ""
+        }
+      ]
+    }
+  ]
+}
