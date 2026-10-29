@@ -2,6 +2,10 @@
 
 All notable changes to this project are documented here.
 
+## [Unreleased]
+
+- **The layout of the README is checked in the CI:** the validator runs `tools/universal_readme_check.py` and lists, as a warning, what differs from the universal layout of the README.
+
 ## [0.2.0] - The machine state is read from OpenPnP and sMEMA hand-over signals
 
 - **The machine state is read from OpenPnP.** Event scripts (`Job.Starting`, `Job.Placement.Complete`, `Job.Finished`, `Machine.AfterHoming`, `Machine.AfterDisabled`) and a menu script (`Report_state.js`) in `openpnp-scripts/HYDRA-UMC` write the state each event implies to one small JSON file, atomically; `OpenPnpStateSource` reads it and the bridge gates on it instead of on the claim of the job message. A missing, stale, foreign or malformed file is an OFFLINE machine and the job is refused with the reason; answers say `observed: true` when the state was read. `cmd/status` publishes the retained `state`. The scripts are tested in Node; they have not run inside OpenPnP.
