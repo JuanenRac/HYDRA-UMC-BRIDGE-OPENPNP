@@ -60,11 +60,10 @@ _PHASE_ORDINAL = {phase: index for index, phase in enumerate(JobPhase)}
 class EventPublish(MqttPublish):
     """An ``MqttPublish`` that also carries its QoS (events use 1)."""
 
-    __slots__ = ("qos",)
+    __slots__ = ()
 
     def __init__(self, topic: str, payload: str, retain: bool = False, qos: int = 1) -> None:
-        super().__init__(topic, payload, retain)
-        self.qos = qos
+        super().__init__(topic, payload, retain, qos)
 
 
 @dataclass(frozen=True)
