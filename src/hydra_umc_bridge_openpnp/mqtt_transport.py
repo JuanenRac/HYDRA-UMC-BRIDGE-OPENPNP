@@ -57,12 +57,12 @@ import json
 import logging
 import time
 from dataclasses import asdict
-from typing import Callable
+from typing import Any, Callable
 
 from hydra_umc_sdk.bridge_contract import BridgeError, CellState, JobPhase, MachineState, job_from_dict
 from hydra_umc_sdk.job_intake import IdempotencyStore
 from hydra_umc_sdk.bridge_transport import MessageDispatcher as SharedMessageDispatcher
-from hydra_umc_sdk.bridge_transport import MqttPublish, connect_with_retry, open_bridge_client
+from hydra_umc_sdk.bridge_transport import MqttPublish, connect_with_retry, open_bridge_client  # noqa: F401
 
 from .board_flow import BoardFlow
 from .handoff import BoardIdentity, SimulatedBoardHandoff, simulate_board_handoff
@@ -290,7 +290,7 @@ class OpenPnpMqttBridge:
             else:
                 code_check = self._check_code(job.phase, board_id)
         except (json.JSONDecodeError, BridgeError, UnicodeDecodeError) as error:
-            decision = {"allowed": False, "handoff": "none", "reason": f"malformed job payload: {error}", "mode": "simulation-only", "observed": False}
+            decision: Any = {"allowed": False, "handoff": "none", "reason": f"malformed job payload: {error}", "mode": "simulation-only", "observed": False}
             return MqttPublish(result_topic, json.dumps(decision))
         # one key space per verb: asking the gate with `cmd/job` and then handing off with the same job must run the hand-off
         key = f"job:{job.idempotency_key}"
@@ -342,7 +342,7 @@ class OpenPnpMqttBridge:
                 identity_raw.get("table_id", ""),
             )
         except (json.JSONDecodeError, BridgeError, KeyError, ValueError, TypeError, UnicodeDecodeError) as error:
-            result = {
+            result: Any = {
                 "allowed": False,
                 "handoff": "none",
                 "reason": f"malformed handoff payload: {error}",
@@ -438,6 +438,6 @@ def run_forever(
             max_connect_attempts=max_connect_attempts,
             connect_retry_delay_seconds=connect_retry_delay_seconds,
         )
-        client.loop_forever()
+        client.loop_forever()  # type: ignore[attr-defined]
     finally:
         dispatcher.close(wait=False)

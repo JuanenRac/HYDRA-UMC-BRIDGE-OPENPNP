@@ -6,7 +6,6 @@
 """The state file the OpenPnP event scripts write, how the bridge trusts it, and the scripts themselves (run in Node)."""
 
 import json
-import os
 import shutil
 import subprocess
 import tempfile
