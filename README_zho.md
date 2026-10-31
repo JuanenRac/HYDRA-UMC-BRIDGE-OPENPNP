@@ -18,14 +18,14 @@ GPL-3.0-or-later - see LICENSE
   <img src="https://img.shields.io/badge/License-GPL%203.0--or--later-blue.svg" alt="GPL 3.0 or later">
   <img src="https://img.shields.io/badge/Python-3.11%2B-3776AB.svg" alt="Python">
   <img src="https://img.shields.io/badge/Safety-Fails%20Closed-red.svg" alt="Safety">
-  <img src="https://img.shields.io/badge/Tests-215%20passing-2ea44f.svg" alt="Tests">
+  <img src="https://img.shields.io/badge/Tests-240%20passing-2ea44f.svg" alt="Tests">
   <img src="https://img.shields.io/badge/Version-0.2.1-0f6cbd.svg" alt="Version">
   <img src="https://img.shields.io/badge/Maturity-functional-0F6CBD.svg" alt="Maturity">
 </p>
 
 ---
 
-> **诚实检查——今天真正可运行的部分：** 可追溯的板流核心及其安全门控（`board_flow.py` 中的 `BoardFlow`，每个任务都会经过 `HYDRA-UMC-SDK` 自身真正的 `evaluate_job()`）、只读的 OpenPnP 配置检查器（`configuration.py`）、仅限追踪的交接/周期模拟器（`handoff.py`、`evidence.py`），以及 MQTT 命令/证据传输（`mqtt_transport.py`）都是真实的，并由 215 个通过的 `unittest` 用例覆盖（`python tools/build_test.py` —— `test_board_flow.py`、`test_mqtt_transport.py`）。以上这些都从未真正打开过 OpenPnP、真实的机器连接或真实的 MQTT broker——`test_mqtt_transport.py`、`test_hardening.py`、`test_idempotency.py`、`test_mqtt_environment.py` 使用的是一个伪造的 broker 客户端，`configuration.py` 只会解析一个已保存的 `machine.xml` 文件，而 `handoff.py`/`evidence.py` 的模拟器明确只在本地运行，没有任何 OpenPnP、串口或机器 I/O。目前还没有与 OpenPnP 扩展/API 的实时集成——详见下文的"当前状态与后续步骤"（已经如实说明了这一点），以及 `CHANGELOG.md` 中目前具体已交付的内容。 MQTT 传输层也已在开发机器上针对真实的 HYDRA-UMC-MQTT-BROKER 运行过(`tests/test_broker_integration.py`,未安装 broker 时会跳过):QoS 0、1、2 的发布与订阅、保留的可用性及其遗嘱消息,以及 broker 停止后重新启动时的恢复。
+> **诚实检查——今天真正可运行的部分：** 可追溯的板流核心及其安全门控（`board_flow.py` 中的 `BoardFlow`，每个任务都会经过 `HYDRA-UMC-SDK` 自身真正的 `evaluate_job()`）、只读的 OpenPnP 配置检查器（`configuration.py`）、仅限追踪的交接/周期模拟器（`handoff.py`、`evidence.py`），以及 MQTT 命令/证据传输（`mqtt_transport.py`）都是真实的，并由 240 个通过的 `unittest` 用例覆盖（`python tools/build_test.py` —— `test_board_flow.py`、`test_mqtt_transport.py`）。以上这些都从未真正打开过 OpenPnP、真实的机器连接或真实的 MQTT broker——`test_mqtt_transport.py`、`test_hardening.py`、`test_idempotency.py`、`test_mqtt_environment.py` 使用的是一个伪造的 broker 客户端，`configuration.py` 只会解析一个已保存的 `machine.xml` 文件，而 `handoff.py`/`evidence.py` 的模拟器明确只在本地运行，没有任何 OpenPnP、串口或机器 I/O。目前还没有与 OpenPnP 扩展/API 的实时集成——详见下文的"当前状态与后续步骤"（已经如实说明了这一点），以及 `CHANGELOG.md` 中目前具体已交付的内容。 MQTT 传输层也已在开发机器上针对真实的 HYDRA-UMC-MQTT-BROKER 运行过(`tests/test_broker_integration.py`,未安装 broker 时会跳过):QoS 0、1、2 的发布与订阅、保留的可用性及其遗嘱消息,以及 broker 停止后重新启动时的恢复。
 
 > **安全与安防现状:**本生态系统不是经认证的安全系统。目前尚无硬件 E-STOP 通路,没有由固件强制执行的限位或联锁,也没有经过验证的运动指令;固件映像使用 CRC-32 和 Ed25519 签名校验,发布构建会拒绝已公开的开发密钥(中继之后的工具头和扩展板仍运行 URTC 的引导程序,它们使用共享密钥的 HMAC-SHA256 而不是签名);TLS 与双向 TLS 均为可选项,默认关闭;自制电路板尚未组装或测试。在依赖此处任何说法来保障人身安全之前,请先阅读[安全基线](https://github.com/JuanenRac/HYDRA-UMC-DOCS/blob/main/docs/SECURITY_BASELINE.md)和[威胁模型](https://github.com/JuanenRac/HYDRA-UMC-DOCS/blob/main/docs/THREAT_MODEL.md)。
 
@@ -37,7 +37,7 @@ GPL-3.0-or-later - see LICENSE
 |---|---|
 | 版本 | `0.2.1` |
 | 成熟度 | 可用 |
-| 测试 | 215 (`python tools/build_test.py`) |
+| 测试 | 240 (`python tools/build_test.py`) |
 | 技术栈 | Python / OpenPnP / HYDRA-UMC-SDK |
 | 目标 | HYDRA-UMC 工作单元的 Raspberry Pi CM5 |
 | 真实硬件 | 仅模拟：使用模拟器、替身或仿真测试；此版本没有在真实硬件上运行的记录 |
@@ -53,7 +53,7 @@ GPL-3.0-or-later - see LICENSE
 | 领域 | 状态 | 在这里的含义 |
 |---|---|---|
 | 软件 | 🟡 | 主要用途可用；上面的诚实性检查列出了仍然缺少的内容 |
-| 测试 | 🟢 | 215 项自动测试，每次变更都会运行 |
+| 测试 | 🟢 | 240 项自动测试，每次变更都会运行 |
 | 真实硬件 | 🟠 | 仅模拟：使用模拟器、替身或仿真测试；此版本没有在真实硬件上运行的记录 |
 | 文档 | 🟢 | 八种语言的 README，每次变更都会与清单核对 |
 
@@ -112,6 +112,7 @@ flowchart LR
 * ✅ **逐板追溯:** `traceability.py` 汇集每块板的交接,并在其周期结束时把追溯记录发布到 `hydra/bridges/openpnp/event/board`(QoS 1,不保留),同时向 HYDRA-UMC-DATALAKE 发送每一步一个 `board_handoff` 样本(源为 `board-<指纹>`),外加一个 `production_event`(`good`、`cycleTimeS`),HYDRA-UMC-PRODUCTION-REPORTS 据此计算 OEE。默认只有指纹会离开;工厂允许时可附带标识符。数据湖宕机绝不会让单元停下:样本会等待,并随下一条追溯记录发出。*(已实现,已针对本地 HTTP 服务器测试)*
 * ✅ **板上编码:** `board_code.py` 把从板上读到的 DataMatrix 与作业指定的板卡进行比对(`HYDRA_UMC_OPENPNP_BOARD_CODE`:默认 `off`,可选 `advisory` 或 `required`);编码不同则拒绝,没有指定板卡的作业采用读到的唯一编码,不是稳定标识符的内容不算编码。编码来自 HYDRA-UMC-VISION-NODE 的 `POST /read-code`(`VisionNodeCodeSource`)。*(已实现,尚未在真实标签上试过)*
 * ✅ **加固的 MQTT 循环与诚实的回复:** 过大(超过 16 KiB)或无法读取的负载、深度嵌套的 JSON 以及任何意外故障,都会在结果主题上得到拒绝回复,绝不会终止循环;`cmd/job` 与 `cmd/handoff` 使用各自独立的幂等键空间(`job:`/`handoff:`),因此经门控检查的任务仍可用同一个键进行交接,并保留其身份指纹;`cmd/job` 的回复带有 `"mode": "simulation-only"` 和 `"observed": false`(没有任何东西在观察 OpenPnP:机器状态由请求方自行声明),通过它发出的 ABORT 会说明没有停止任何东西;门控与交接追踪共用同一条电路板标识规则,`cmd/handoff` 接受 `slot_id`、`rack_id` 和 `table_id`,带有 DOCTYPE 的 `machine.xml` 无论采用何种编码都会被拒绝;桥接在带遗嘱(Last Will)的 `availability` 主题上宣告自己。*(已实现,在 `tests/test_hardening.py` 中测试)*
+* ✅ **跟随全局停止（默认关闭）:** 设置 `HYDRA_UMC_OPENPNP_GLOBAL_STOP=1` 后，桥接读取服务器在 `hydra/swarm/safety/estop` 上的保留通知；通知为 `SAFE_STOP` 或无法读取时，它会带原因拒绝：任务（中止放行）、交接和置位 SMEMA 线。停止命令和只读请求照常工作，只有 `READY` 才能解除拒绝。*（已实现，已对真实代理测试；从未与真实服务器一起运行）*
 
 ## 🔒 安全与防护
 
@@ -145,6 +146,7 @@ flowchart LR
 | `HYDRA_UMC_OPENPNP_BOARD_CODE` | `off` | `off`、`advisory` 或 `required`；未知值等同于 `off` |
 | `HYDRA_UMC_OPENPNP_STATE_FILE` | 未设置 | OpenPnP 事件脚本写入的文件路径；未设置表示没有状态来源 |
 | `HYDRA_UMC_OPENPNP_STATE_MAX_AGE_SECONDS` | `900` | 状态文件多旧之后不再可信 |
+| `HYDRA_UMC_OPENPNP_GLOBAL_STOP` | 关闭 | `1` 跟随服务器的全局停止：只要保留主题 `hydra/swarm/safety/estop` 上最新的通知是 `SAFE_STOP`（或无法读取），桥接就会带原因拒绝：任务（中止放行）、交接和置位 SMEMA 线；只有 `READY` 才能解除。`HYDRA_UMC_OPENPNP_GLOBAL_STOP_TOPIC` 可更改主题，`HYDRA_UMC_OPENPNP_GLOBAL_STOP_STRICT=1` 会在收到第一条通知之前也拒绝 |
 | `HYDRA_MQTT_USERNAME` | 无 | MQTT 用户名；代理将其绑定到客户端 ID 前缀 |
 | `HYDRA_MQTT_PASSWORD` | 无 | 密码；只能与用户名一起使用 |
 | `HYDRA_MQTT_PASSWORD_FILE` | 无 | 从文件读取的密码（Docker 或 systemd 机密）；设置了 `HYDRA_MQTT_PASSWORD` 时忽略 |
@@ -175,7 +177,7 @@ run_forever(bridge, host="192.168.0.180")                  # serves cmd/# foreve
 
 ## 🧪 测试
 
-运行 `python tools/build_test.py` 会执行 215 个自动 `unittest` 用例（同时编译每个模块）。测试不需要硬件、网络或可选软件包：需要 `paho-mqtt`、`pyserial` 或厂商库的用例使用替身，缺少软件包时则跳过。
+运行 `python tools/build_test.py` 会执行 240 个自动 `unittest` 用例（同时编译每个模块）。测试不需要硬件、网络或可选软件包：需要 `paho-mqtt`、`pyserial` 或厂商库的用例使用替身，缺少软件包时则跳过。
 
 | 测试文件 | 测试数 | 覆盖内容 |
 |---|---|---|
@@ -199,7 +201,7 @@ bash build-test.sh
 bash build.sh
 ```
 
-`build-test` 使用 `py_compile` 编译 `src/` 下的每个模块,并运行在 `tests/` 下发现的完整 `unittest` 套件(`test_board_flow.py`、`test_mqtt_transport.py`——共 215 个测试),证明板级可追溯性拒绝逻辑和故障安全门控等均按预期工作 —— 它绝不会修改仓库。`build` 会先运行同样的验证,只有成功后才调用 `tools/bump_version.py`,在 `pyproject.toml`、`hydra-umc.project.json` 和 `CHANGELOG.md` 之间同步版本号。目前尚无真正的机器 `run` 命令 —— 这需要经过验证的 OpenPnP 集成。
+`build-test` 使用 `py_compile` 编译 `src/` 下的每个模块,并运行在 `tests/` 下发现的完整 `unittest` 套件(`test_board_flow.py`、`test_mqtt_transport.py`——共 240 个测试),证明板级可追溯性拒绝逻辑和故障安全门控等均按预期工作 —— 它绝不会修改仓库。`build` 会先运行同样的验证,只有成功后才调用 `tools/bump_version.py`,在 `pyproject.toml`、`hydra-umc.project.json` 和 `CHANGELOG.md` 之间同步版本号。目前尚无真正的机器 `run` 命令 —— 这需要经过验证的 OpenPnP 集成。
 
 ## 🩺 故障排除
 
@@ -256,7 +258,7 @@ HYDRA-UMC-BRIDGE-OPENPNP/
 
 **当前已知限制**
 
-**目前真实的部分:** 版本 `0.2.1`,一个已在本地测试过的可追溯 PCB 交接核心(`BoardFlow`),依托 `HYDRA-UMC-SDK` 的共享任务门控,一个真实的 MQTT 命令/证据传输(`mqtt_transport.py`),配有确定性的215项 `unittest` 测试套件、报告真实 OpenPnP 执行器/信号器/喷嘴头证据以及机头/摄像头/驱动器/供料器数量的保存配置文件检查器、可见的手动只读 OpenPnP 菜单模板、身份绑定交接/周期模拟以及经 CI 验证的无机器 I/O 非敏感 JSON 证据契约。
+**目前真实的部分:** 版本 `0.2.1`,一个已在本地测试过的可追溯 PCB 交接核心(`BoardFlow`),依托 `HYDRA-UMC-SDK` 的共享任务门控,一个真实的 MQTT 命令/证据传输(`mqtt_transport.py`),配有确定性的240项 `unittest` 测试套件、报告真实 OpenPnP 执行器/信号器/喷嘴头证据以及机头/摄像头/驱动器/供料器数量的保存配置文件检查器、可见的手动只读 OpenPnP 菜单模板、身份绑定交接/周期模拟以及经 CI 验证的无机器 I/O 非敏感 JSON 证据契约。
 
 **集成边界:** OpenPnP 始终保留贴装运动学、送料器控制和原始运动;本桥接只负责门控和追踪其周围的*交接*环节——机器人上料、原生贴装的完成、机器人下料。
 

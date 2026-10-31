@@ -49,6 +49,18 @@ The current inspected format is the public OpenPnP machine configuration XML. Fu
 
 Use the standard repository header, a numbered console flow, explicit mutating/non-mutating behavior and `pause` in `.bat`. Keep parsing and simulation in `src/` or `tools/`, cover it with tests, and ensure no script starts OpenPnP or touches a serial port unless a separate authenticated hardware feature is explicitly designed and tested.
 
+## Following the global stop
+
+The server can announce a global stop on `<mqtt prefix>/safety/estop` (a retained `SafetyState` message: `SAFE_STOP`, later `READY`; the contract is `docs/GLOBAL_STOP.md` of HYDRA-UMC-SERVER). This bridge can follow it. It is off by default and then behaves exactly as before: it does not even subscribe to the topic.
+
+| Switch | Default | Meaning |
+|---|---|---|
+| `HYDRA_UMC_OPENPNP_GLOBAL_STOP` | off | `1` makes the bridge subscribe to the announcement (QoS 1, again after every reconnect) |
+| `HYDRA_UMC_OPENPNP_GLOBAL_STOP_TOPIC` | `hydra/swarm/safety/estop` | the topic, when the MQTT prefix of the server is not the default one |
+| `HYDRA_UMC_OPENPNP_GLOBAL_STOP_STRICT` | off | `1` also refuses before the first announcement has been heard |
+
+While the last announcement says `SAFE_STOP`, says anything but `READY`, or cannot be read, the command handler of the bridge refuses `cmd/job` (an abort job passes), `cmd/handoff` and asserting an SMEMA line (`cmd/smema_ready` or `cmd/smema_offer` with `true`; withdrawing a line is always allowed) with an answer that gives the reason (`global stop active (SAFE_STOP) - nothing moves until the server announces READY`); `cmd/status` and the withdrawal of an SMEMA line keep working. Only a `READY` message ends it. The announcement is read although it is retained: it is the state, not a replayed command. When the broker is lost the bridge keeps the last state it heard; a bridge that has not heard the topic yet is left as it was, unless `HYDRA_UMC_OPENPNP_GLOBAL_STOP_STRICT` is on. This is a refusal in software: the controller and the machine keep the last word, and the contract adds a stop, it never removes one. Tested against a real broker (`tests/test_global_stop_broker.py`); never run with the real server.
+
 ## Hardware acceptance gate
 
 Identify the machine/profile and fixture, read state without motion, bind an inspected profile to a physical machine, verify board/recipe/lot traceability, test controlled stop, then conduct dry hand-off HIL trials. Native OpenPnP/machine safety remains authoritative.

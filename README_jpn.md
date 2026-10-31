@@ -18,14 +18,14 @@ GPL-3.0-or-later - see LICENSE
   <img src="https://img.shields.io/badge/License-GPL%203.0--or--later-blue.svg" alt="GPL 3.0 or later">
   <img src="https://img.shields.io/badge/Python-3.11%2B-3776AB.svg" alt="Python">
   <img src="https://img.shields.io/badge/Safety-Fails%20Closed-red.svg" alt="Safety">
-  <img src="https://img.shields.io/badge/Tests-215%20passing-2ea44f.svg" alt="Tests">
+  <img src="https://img.shields.io/badge/Tests-240%20passing-2ea44f.svg" alt="Tests">
   <img src="https://img.shields.io/badge/Version-0.2.1-0f6cbd.svg" alt="Version">
   <img src="https://img.shields.io/badge/Maturity-functional-0F6CBD.svg" alt="Maturity">
 </p>
 
 ---
 
-> **誠実性チェック - 今日実際に動くもの:** 追跡可能なボードフローコアと安全ゲート（`board_flow.py` の `BoardFlow`。すべてのジョブは `HYDRA-UMC-SDK` 自身の本物の `evaluate_job()` を通過する）、読み取り専用の OpenPnP プロファイル検査器（`configuration.py`）、トレース専用の受け渡し/サイクルシミュレータ（`handoff.py`、`evidence.py`）、および MQTT コマンド/エビデンストランスポート（`mqtt_transport.py`）は本物であり、215件の通過する `unittest` ケースで検証されている（`python tools/build_test.py` - `test_board_flow.py`、`test_mqtt_transport.py`）。これらはいずれも OpenPnP、実際のマシン接続、あるいは本物の MQTT ブローカーを一度も開いたことがない - `test_mqtt_transport.py`、`test_hardening.py`、`test_idempotency.py`、`test_mqtt_environment.py` は模擬ブローカークライアントを使用し、`configuration.py` は保存済みの `machine.xml` ファイルを解析するだけであり、`handoff.py`/`evidence.py` のシミュレータは明示的にローカル限定で、OpenPnP・シリアル・マシンの I/O は一切ない。OpenPnP の拡張機能・API とのライブ統合はまだ存在しない - 詳細は下記の「ロードマップと既知の制限」に既に明記されており、これまでに実際に出荷された内容は `CHANGELOG.md` を参照。 MQTT トランスポートは、開発用マシン上の本物の HYDRA-UMC-MQTT-BROKER に対しても実行されています(`tests/test_broker_integration.py`。ブローカーが未インストールの場合はスキップされます)。QoS 0・1・2 でのパブリッシュとサブスクライブ、保持された可用性とそのラストウィル、ブローカーが停止して再起動した後の復帰を確認しています。
+> **誠実性チェック - 今日実際に動くもの:** 追跡可能なボードフローコアと安全ゲート（`board_flow.py` の `BoardFlow`。すべてのジョブは `HYDRA-UMC-SDK` 自身の本物の `evaluate_job()` を通過する）、読み取り専用の OpenPnP プロファイル検査器（`configuration.py`）、トレース専用の受け渡し/サイクルシミュレータ（`handoff.py`、`evidence.py`）、および MQTT コマンド/エビデンストランスポート（`mqtt_transport.py`）は本物であり、240件の通過する `unittest` ケースで検証されている（`python tools/build_test.py` - `test_board_flow.py`、`test_mqtt_transport.py`）。これらはいずれも OpenPnP、実際のマシン接続、あるいは本物の MQTT ブローカーを一度も開いたことがない - `test_mqtt_transport.py`、`test_hardening.py`、`test_idempotency.py`、`test_mqtt_environment.py` は模擬ブローカークライアントを使用し、`configuration.py` は保存済みの `machine.xml` ファイルを解析するだけであり、`handoff.py`/`evidence.py` のシミュレータは明示的にローカル限定で、OpenPnP・シリアル・マシンの I/O は一切ない。OpenPnP の拡張機能・API とのライブ統合はまだ存在しない - 詳細は下記の「ロードマップと既知の制限」に既に明記されており、これまでに実際に出荷された内容は `CHANGELOG.md` を参照。 MQTT トランスポートは、開発用マシン上の本物の HYDRA-UMC-MQTT-BROKER に対しても実行されています(`tests/test_broker_integration.py`。ブローカーが未インストールの場合はスキップされます)。QoS 0・1・2 でのパブリッシュとサブスクライブ、保持された可用性とそのラストウィル、ブローカーが停止して再起動した後の復帰を確認しています。
 
 > **安全性とセキュリティの現状:** このエコシステムは認証された安全システムではありません。ハードウェアの E-STOP 経路、ファームウェアが強制する制限やインターロック、検証済みの動作コマンドはまだありません。ファームウェアイメージは CRC-32 と Ed25519 署名で検査し、リリースビルドは公開済みの開発用鍵を拒否します(リレーの先のツールヘッドと拡張ボードは引き続き URTC のブートローダーを使い、署名ではなく共有鍵の HMAC-SHA256 を使います)。TLS と相互 TLS は任意で、既定では無効です。独自基板はまだ実装も試験もされていません。ここに書かれた内容を人の安全のために頼る前に、[セキュリティベースライン](https://github.com/JuanenRac/HYDRA-UMC-DOCS/blob/main/docs/SECURITY_BASELINE.md)と[脅威モデル](https://github.com/JuanenRac/HYDRA-UMC-DOCS/blob/main/docs/THREAT_MODEL.md)をお読みください。
 
@@ -37,7 +37,7 @@ GPL-3.0-or-later - see LICENSE
 |---|---|
 | バージョン | `0.2.1` |
 | 成熟度 | 機能する |
-| テスト | 215 (`python tools/build_test.py`) |
+| テスト | 240 (`python tools/build_test.py`) |
 | 技術 | Python / OpenPnP / HYDRA-UMC-SDK |
 | 対象 | HYDRA-UMC セルの Raspberry Pi CM5 |
 | 実機での確認 | シミュレーションのみ：エミュレーター、模擬部品、シミュレーターで試験済み。このバージョンについて実機での動作記録はありません |
@@ -53,7 +53,7 @@ GPL-3.0-or-later - see LICENSE
 | 領域 | 状態 | ここでの意味 |
 |---|---|---|
 | ソフトウェア | 🟡 | 主な目的では動作します。足りない点は上の正直さの確認に書かれています |
-| テスト | 🟢 | 自動テスト 215 件。変更のたびに実行されます |
+| テスト | 🟢 | 自動テスト 240 件。変更のたびに実行されます |
 | 実機 | 🟠 | シミュレーションのみ：エミュレーター、模擬部品、シミュレーターで試験済み。このバージョンについて実機での動作記録はありません |
 | ドキュメント | 🟢 | 8 言語の README。変更のたびにマニフェストと照合されます |
 
@@ -112,6 +112,7 @@ flowchart LR
 * ✅ **基板ごとのトレーサビリティ:** `traceability.py` は各基板の受け渡しをまとめ、サイクルの終了時にトレースを `hydra/bridges/openpnp/event/board`(QoS 1、保持なし)に発行し、HYDRA-UMC-DATALAKE に各ステップごとの `board_handoff` サンプル(`board-<フィンガープリント>` の下)と、HYDRA-UMC-PRODUCTION-REPORTS が OEE を算出する元になる `production_event`(`good`、`cycleTimeS`)を 1 件送ります。既定ではフィンガープリントだけが外に出ます。工場が許可する場合は識別子も含められます。データレイクが止まってもセルは止まらず、サンプルは待機して次のトレースと一緒に送られます。*(実装済み、ローカル HTTP サーバーに対してテスト済み)*
 * ✅ **基板上のコード:** `board_code.py` は基板から読んだ DataMatrix をジョブが指す基板と照合します(`HYDRA_UMC_OPENPNP_BOARD_CODE`:既定は `off`、`advisory` または `required`)。異なるコードは拒否され、基板を指定しないジョブは読み取った唯一のコードを採用し、安定した識別子でないものはコードとして扱われません。コードは HYDRA-UMC-VISION-NODE の `POST /read-code`(`VisionNodeCodeSource`)から得ます。*(実装済み、実際のラベルでは未検証)*
 * ✅ **堅牢化したMQTTループと正直な応答:** 大きすぎる(16 KiB超)または読めないペイロード、深くネストされたJSON、想定外の障害には、結果トピックで拒否を返し、ループは決して終了しない。`cmd/job` と `cmd/handoff` は冪等キーの空間を分けて持つ(`job:`/`handoff:`)ため、ゲートで確認したジョブを同じキーで受け渡しでき、アイデンティティのフィンガープリントも保たれる。`cmd/job` の応答には `"mode": "simulation-only"` と `"observed": false` が付き(OpenPnPを見ているものはない: マシン状態は要求者の申告である)、そこを通したABORTは何も停止していないことを明示する。ゲートと受け渡しトレースは基板識別子の規則を共有し、`cmd/handoff` は `slot_id`、`rack_id`、`table_id` を受け付け、DOCTYPEを含む `machine.xml` はどのエンコーディングでも拒否される。ブリッジはLast Will付きの `availability` トピックで自らを告知する。*(実装済み、`tests/test_hardening.py` でテスト済み)*
+* ✅ **グローバル停止に従う（既定ではオフ）:** `HYDRA_UMC_OPENPNP_GLOBAL_STOP=1` で、ブリッジは `hydra/swarm/safety/estop` のサーバーの保持通知を読みます。それが `SAFE_STOP` の間、または読み取れない間は、理由を付けて次を拒否します：ジョブ（中止は通す）、受け渡しとSMEMA ラインのアサート。停止と読み取り専用の要求は動き続け、拒否を解くのは `READY` だけです。*（実装済み、実際のブローカーに対してテスト済み。実際のサーバーでは未実行）*
 
 ## 🔒 セキュリティと安全
 
@@ -145,6 +146,7 @@ flowchart LR
 | `HYDRA_UMC_OPENPNP_BOARD_CODE` | `off` | `off`・`advisory`・`required`。未知の値は `off` と同じです |
 | `HYDRA_UMC_OPENPNP_STATE_FILE` | 未設定 | OpenPnP のイベントスクリプトが書くファイルのパス。未設定なら状態の入力元なし |
 | `HYDRA_UMC_OPENPNP_STATE_MAX_AGE_SECONDS` | `900` | 状態ファイルが信頼されなくなるまでの古さの上限 |
+| `HYDRA_UMC_OPENPNP_GLOBAL_STOP` | オフ | `1` でサーバーのグローバル停止に従います。保持トピック `hydra/swarm/safety/estop` の最新の通知が `SAFE_STOP`（または読み取れない）の間、ブリッジは理由を付けて次を拒否します：ジョブ（中止は通す）、受け渡しとSMEMA ラインのアサート。解除は `READY` のみです。`HYDRA_UMC_OPENPNP_GLOBAL_STOP_TOPIC` でトピックを変更でき、`HYDRA_UMC_OPENPNP_GLOBAL_STOP_STRICT=1` は最初の通知が届くまでも拒否します |
 | `HYDRA_MQTT_USERNAME` | なし | MQTT のユーザー名。ブローカーはクライアント ID のプレフィックスに結び付けます |
 | `HYDRA_MQTT_PASSWORD` | なし | パスワード。ユーザー名と一緒にのみ有効です |
 | `HYDRA_MQTT_PASSWORD_FILE` | なし | ファイルから読むパスワード（Docker や systemd のシークレット）。`HYDRA_MQTT_PASSWORD` があれば無視されます |
@@ -175,7 +177,7 @@ run_forever(bridge, host="192.168.0.180")                  # serves cmd/# foreve
 
 ## 🧪 テスト
 
-`python tools/build_test.py` で自動 `unittest` 215 件を実行します（各モジュールのコンパイルも行います）。テストにハードウェア、ネットワーク、オプションのパッケージは不要で、`paho-mqtt`・`pyserial`・ベンダーのライブラリが必要なものは代用品を使うか、パッケージがなければスキップされます。
+`python tools/build_test.py` で自動 `unittest` 240 件を実行します（各モジュールのコンパイルも行います）。テストにハードウェア、ネットワーク、オプションのパッケージは不要で、`paho-mqtt`・`pyserial`・ベンダーのライブラリが必要なものは代用品を使うか、パッケージがなければスキップされます。
 
 | テストファイル | テスト数 | 対象 |
 |---|---|---|
@@ -199,7 +201,7 @@ bash build-test.sh
 bash build.sh
 ```
 
-`build-test` は `src/` 配下の各モジュールを `py_compile` でコンパイルし、`tests/` 配下で検出される `unittest` の全スイート(`test_board_flow.py`、`test_mqtt_transport.py` - 215件のテスト)を実行して、ボード追跡性による拒否とフェイルセーフゲートを実証する —— リポジトリを一切変更しない。`build` はまず同じ検証を実行し、成功した場合のみ `tools/bump_version.py` を呼び出して `pyproject.toml`、`hydra-umc.project.json`、`CHANGELOG.md` の間でバージョンを同期する。実際の機械向け `run` コマンドはまだ存在しない —— それには検証済みのOpenPnP統合が必要である。
+`build-test` は `src/` 配下の各モジュールを `py_compile` でコンパイルし、`tests/` 配下で検出される `unittest` の全スイート(`test_board_flow.py`、`test_mqtt_transport.py` - 240件のテスト)を実行して、ボード追跡性による拒否とフェイルセーフゲートを実証する —— リポジトリを一切変更しない。`build` はまず同じ検証を実行し、成功した場合のみ `tools/bump_version.py` を呼び出して `pyproject.toml`、`hydra-umc.project.json`、`CHANGELOG.md` の間でバージョンを同期する。実際の機械向け `run` コマンドはまだ存在しない —— それには検証済みのOpenPnP統合が必要である。
 
 ## 🩺 トラブルシューティング
 
@@ -256,7 +258,7 @@ HYDRA-UMC-BRIDGE-OPENPNP/
 
 **現時点の既知の制限**
 
-**現時点で実在するもの:** バージョン `0.2.1`。ローカルでテスト済みの追跡可能なPCB受け渡しコア(`BoardFlow`)が `HYDRA-UMC-SDK` の共有ジョブゲートの上に構築されており、実際の MQTT コマンド/エビデンストランスポート(`mqtt_transport.py`)、215件の決定論的な `unittest` スイート、ヘッド/カメラ/ドライバー/フィーダーの数とともに実際の OpenPnP アクチュエータ/シグナラー/ノズルチップの証拠を報告する保存済みプロファイル検査器、可視の手動読み取り専用 OpenPnP メニューテンプレート、識別子結合の受け渡し/サイクルシミュレーション、機械 I/O のない CI 検証済み非機密 JSON エビデンス契約を備える。
+**現時点で実在するもの:** バージョン `0.2.1`。ローカルでテスト済みの追跡可能なPCB受け渡しコア(`BoardFlow`)が `HYDRA-UMC-SDK` の共有ジョブゲートの上に構築されており、実際の MQTT コマンド/エビデンストランスポート(`mqtt_transport.py`)、240件の決定論的な `unittest` スイート、ヘッド/カメラ/ドライバー/フィーダーの数とともに実際の OpenPnP アクチュエータ/シグナラー/ノズルチップの証拠を報告する保存済みプロファイル検査器、可視の手動読み取り専用 OpenPnP メニューテンプレート、識別子結合の受け渡し/サイクルシミュレーション、機械 I/O のない CI 検証済み非機密 JSON エビデンス契約を備える。
 
 **統合境界:** OpenPnPは常に実装キネマティクス、フィーダー制御、生の動作を保持する。このブリッジがゲート・追跡するのはあくまでその周りの*受け渡し*のみである —— ロボットによる搭載、ネイティブ実装の完了、ロボットによる取り出し。
 

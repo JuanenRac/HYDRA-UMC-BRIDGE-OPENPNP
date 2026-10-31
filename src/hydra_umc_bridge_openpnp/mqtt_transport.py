@@ -64,6 +64,7 @@ from hydra_umc_sdk.job_intake import IdempotencyStore
 from hydra_umc_sdk.bridge_transport import MessageDispatcher as SharedMessageDispatcher
 from hydra_umc_sdk.bridge_transport import MqttPublish, connect_with_retry, open_bridge_client  # noqa: F401
 
+from .global_stop import GlobalStopGuard, GlobalStopSettings, follow_on_connect
 from .board_flow import BoardFlow
 from .handoff import BoardIdentity, SimulatedBoardHandoff, simulate_board_handoff
 from .board_code import CodeCheck, CodeSource, MODE_OFF, board_code_mode_from_environment, check_board_code
@@ -79,6 +80,11 @@ MAX_PAYLOAD_BYTES = 16 * 1024
 
 # This bridge drives nothing, so it has no stop command: every message waits its turn on the one lane.
 STOP_VERBS: frozenset[str] = frozenset()
+
+# Refused while the server announces a global stop (when the bridge follows it): a hand-off moves a board, a job asks for work (an abort is let through) and asserting an SMEMA line lets a board travel (withdrawing it is always allowed).
+MOVING_VERBS: frozenset[str] = frozenset({"cmd/handoff"})
+SMEMA_ASSERTIONS = {"cmd/smema_ready": "ready", "cmd/smema_offer": "available"}
+GLOBAL_STOP_ENVIRONMENT_NAME = "OPENPNP"
 
 _LOG = logging.getLogger(__name__)
 
@@ -100,6 +106,7 @@ class OpenPnpMqttBridge:
         trace_recorder: BoardTraceRecorder | None = None,
         code_source: CodeSource | None = None,
         code_mode: str | None = None,
+        global_stop: GlobalStopGuard | GlobalStopSettings | None = None,
     ) -> None:
         self._cell_state = cell_state
         # reads the state OpenPnP last reported (observation.OpenPnpStateSource); None keeps the old behaviour: the claim of the job
@@ -122,6 +129,13 @@ class OpenPnpMqttBridge:
         self._board_flow = BoardFlow()
         # docs/BRIDGE_CONTRACT.md: the idempotency key of a job is handled once; a repeat gets the answer that was given, nothing is run again
         self._idempotency = idempotency
+        # follows the global stop that the server announces (global_stop.py); off unless HYDRA_UMC_OPENPNP_GLOBAL_STOP=1 or a guard is given
+        if isinstance(global_stop, GlobalStopGuard):
+            self.global_stop = global_stop
+        elif global_stop is not None:
+            self.global_stop = GlobalStopGuard(global_stop)
+        else:
+            self.global_stop = GlobalStopGuard.from_environment(GLOBAL_STOP_ENVIRONMENT_NAME)
 
     def handle_message(self, topic: str, payload: bytes, retained: bool = False) -> list[MqttPublish]:
         """Route one real inbound MQTT message. An unrecognised `cmd/`
@@ -138,6 +152,9 @@ class OpenPnpMqttBridge:
         if retained or not topic.startswith(TOPIC_PREFIX):
             return []
         suffix = topic[len(TOPIC_PREFIX) :]
+        refused = self.global_stop.refusal(suffix, payload, moving=MOVING_VERBS, assertions=SMEMA_ASSERTIONS)
+        if refused is not None:
+            return [self._refusal(suffix, refused)]
         if suffix in {"cmd/smema_status", "cmd/smema_ready", "cmd/smema_offer"}:
             if self._smema_receiver is None and self._smema_sender is None:
                 return []
@@ -400,6 +417,16 @@ class MessageDispatcher(SharedMessageDispatcher):
 
     def __init__(self, bridge: object, stop_verbs: frozenset[str] = STOP_VERBS) -> None:
         super().__init__(bridge, TOPIC_PREFIX, stop_verbs)  # type: ignore[arg-type]
+        guard = getattr(bridge, "global_stop", None)
+        self._global_stop = guard if isinstance(guard, GlobalStopGuard) else None
+
+    def on_message(self, client: object, userdata: object, message: object) -> None:
+        # the announcement of the global stop is retained: it is the state, not a replay, so it is read before the retained check of the shared dispatcher
+        guard = self._global_stop
+        if guard is not None and guard.enabled and getattr(message, "topic", None) == guard.topic:
+            guard.observe(bytes(message.payload))  # type: ignore[attr-defined]
+            return
+        super().on_message(client, userdata, message)
 
 
 def run_forever(
@@ -426,6 +453,7 @@ def run_forever(
         raise ValueError("password was given without a username - MQTT credentials need both")
 
     dispatcher = MessageDispatcher(bridge)
+    guard = getattr(bridge, "global_stop", None)  # a bridge object that is not one of ours has none: nothing to follow
     try:
         client = open_bridge_client(
             host,
@@ -437,6 +465,7 @@ def run_forever(
             password=password,
             max_connect_attempts=max_connect_attempts,
             connect_retry_delay_seconds=connect_retry_delay_seconds,
+            on_connected=follow_on_connect(guard) if isinstance(guard, GlobalStopGuard) else None,
         )
         client.loop_forever()  # type: ignore[attr-defined]
     finally:
