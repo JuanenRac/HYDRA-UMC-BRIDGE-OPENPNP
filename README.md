@@ -182,6 +182,7 @@ The user name, the password and the TLS files come from the `HYDRA_MQTT_*` varia
 | Test file | Tests | What it covers |
 |---|---|---|
 | `test_global_stop.py`, `test_global_stop_broker.py` | - | the global-stop guard and its refusals with the reason, and the same against a real broker on a free local port (the announcement at QoS 0, 1 and 2, a retained stop obeyed at connect, an unreadable one failing closed) |
+| `test_transport_limits.py` | - | the limits of the MQTT transport (a bounded queue that drops the oldest waiting command, a payload cap that never applies to the stop verbs, backoff with jitter on the first connection) and the guard of the global stop taken from the shared SDK instead of a copy; the limits are off unless the settings switch them on |
 | `test_broker_integration.py`, `broker_harness.py` | - | the MQTT client against a real HYDRA-UMC-MQTT-BROKER on a free local port: an order through the client, the retained state and last will, and the way back after the broker went down and up; it skips itself when Node.js, `paho-mqtt` or the installed broker (`HYDRA_UMC_TEST_BROKER_DIR`, by default the folder next to this one) are missing |
 | `test_board_flow.py`, `test_board_code.py`, `test_observation.py` | - | hand-off phases, the board code, the state file and the event scripts |
 | `test_smema.py`, `test_traceability.py` | - | SMEMA against an in-memory neighbour; the trace, the data-lake samples and a real local HTTP sink |
