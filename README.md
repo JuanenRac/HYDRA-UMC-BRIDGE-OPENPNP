@@ -18,14 +18,14 @@ GPL-3.0-or-later - see LICENSE
   <img src="https://img.shields.io/badge/License-GPL%203.0--or--later-blue.svg" alt="GPL 3.0 or later">
   <img src="https://img.shields.io/badge/Python-3.11%2B-3776AB.svg" alt="Python">
   <img src="https://img.shields.io/badge/Safety-Fails%20Closed-red.svg" alt="Safety">
-  <img src="https://img.shields.io/badge/Tests-248%20passing-2ea44f.svg" alt="Tests">
+  <img src="https://img.shields.io/badge/Tests-255%20passing-2ea44f.svg" alt="Tests">
   <img src="https://img.shields.io/badge/Version-0.2.3-0f6cbd.svg" alt="Version">
   <img src="https://img.shields.io/badge/Maturity-functional-0F6CBD.svg" alt="Maturity">
 </p>
 
 ---
 
-> **Honesty check - what actually runs today:** the traceable board-flow core and safety gate (`board_flow.py`'s `BoardFlow`, funneling every job through `HYDRA-UMC-SDK`'s own `evaluate_job()`), the read-only OpenPnP profile inspector (`configuration.py`), the trace-only hand-off/cycle simulators (`handoff.py`, `evidence.py`), and the MQTT command/evidence transport (`mqtt_transport.py`) are real and covered by 248 passing `unittest` cases (`python tools/build_test.py` - `test_board_flow.py`, `test_mqtt_transport.py`). None of it has ever opened OpenPnP, a real machine link, or a real MQTT broker - `test_mqtt_transport.py`, `test_hardening.py`, `test_idempotency.py`, `test_mqtt_environment.py` uses a fake broker client, `configuration.py` only ever parses a saved `machine.xml` file, and `handoff.py`/`evidence.py`'s simulators are explicitly local-only with no OpenPnP, serial or machine I/O. There is no live OpenPnP extension/API integration yet - see "Roadmap & Known limits" below, which already says this plainly, and `CHANGELOG.md` for exactly what has shipped so far. The MQTT transport has also been run against a real HYDRA-UMC-MQTT-BROKER on a development machine (`tests/test_broker_integration.py`, skipped when no broker is installed): publish and subscribe at QoS 0, 1 and 2, the retained availability and its last will, and the way back after the broker went down and up again.
+> **Honesty check - what actually runs today:** the traceable board-flow core and safety gate (`board_flow.py`'s `BoardFlow`, funneling every job through `HYDRA-UMC-SDK`'s own `evaluate_job()`), the read-only OpenPnP profile inspector (`configuration.py`), the trace-only hand-off/cycle simulators (`handoff.py`, `evidence.py`), and the MQTT command/evidence transport (`mqtt_transport.py`) are real and covered by 255 passing `unittest` cases (`python tools/build_test.py` - `test_board_flow.py`, `test_mqtt_transport.py`). None of it has ever opened OpenPnP, a real machine link, or a real MQTT broker - `test_mqtt_transport.py`, `test_hardening.py`, `test_idempotency.py`, `test_mqtt_environment.py` uses a fake broker client, `configuration.py` only ever parses a saved `machine.xml` file, and `handoff.py`/`evidence.py`'s simulators are explicitly local-only with no OpenPnP, serial or machine I/O. There is no live OpenPnP extension/API integration yet - see "Roadmap & Known limits" below, which already says this plainly, and `CHANGELOG.md` for exactly what has shipped so far. The MQTT transport has also been run against a real HYDRA-UMC-MQTT-BROKER on a development machine (`tests/test_broker_integration.py`, skipped when no broker is installed): publish and subscribe at QoS 0, 1 and 2, the retained availability and its last will, and the way back after the broker went down and up again.
 
 > **Safety and security status:** this ecosystem is not a certified safety system. There is no hardware E-STOP path, no firmware-enforced limits or interlocks and no verified motion command yet; firmware images are checked with CRC-32 and an Ed25519 signature, and a release build refuses the published development keys (the tool heads and expansion boards behind the relay still run URTC bootloaders, which take a shared-key HMAC-SHA256 instead of a signature); TLS and mutual TLS are optional and off by default; no custom board has been populated or tested yet. Read the [security baseline](https://github.com/JuanenRac/HYDRA-UMC-DOCS/blob/main/docs/SECURITY_BASELINE.md) and the [threat model](https://github.com/JuanenRac/HYDRA-UMC-DOCS/blob/main/docs/THREAT_MODEL.md) before relying on any statement here for the safety of a person.
 
@@ -37,7 +37,7 @@ GPL-3.0-or-later - see LICENSE
 |---|---|
 | Version | `0.2.3` |
 | Maturity | Functional |
-| Tests | 248 (`python tools/build_test.py`) |
+| Tests | 255 (`python tools/build_test.py`) |
 | Stack | Python / OpenPnP / HYDRA-UMC-SDK |
 | Target | The Raspberry Pi CM5 of a HYDRA-UMC cell |
 | On real hardware | Simulated only: tested against emulators, fakes or simulators; no run on real hardware is recorded for this version |
@@ -53,7 +53,7 @@ Each line is one part of this repository and the light says how far it is today.
 | Area | State | What it means here |
 |---|---|---|
 | Software | 🟡 | Works for its main purpose; the honesty check above lists what is still missing |
-| Tests | 🟢 | 248 automated tests, run on every change |
+| Tests | 🟢 | 255 automated tests, run on every change |
 | Real hardware | 🟠 | Simulated only: tested against emulators, fakes or simulators; no run on real hardware is recorded for this version |
 | Interface and protocols | 🟡 | The routes or messages it offers are documented and tested with a client; not every client has used them yet |
 | Integration | 🟠 | Its messages and routes are checked against the shared contracts of the SDK; it has not run together with the real equipment |
@@ -120,6 +120,7 @@ flowchart LR
 * ✅ **Code on the board:** `board_code.py` compares the DataMatrix read from the board with the board of the job (`HYDRA_UMC_OPENPNP_BOARD_CODE`: `off` by default, `advisory` or `required`); a different code is refused, a job without a board takes the single code read, and what is not a stable identifier is not a code. The code comes from HYDRA-UMC-VISION-NODE's `POST /read-code` (`VisionNodeCodeSource`). *(implemented, not tried on a real label)*
 * ✅ **Hardened MQTT loop and honest answers:** a payload that is too large (over 16 KiB) or cannot be read, deeply nested JSON and any unexpected failure are answered with a refusal on the result topic and never end the loop; `cmd/job` and `cmd/handoff` keep separate idempotency key spaces (`job:`/`handoff:`), so a job checked with the gate can still be handed off with the same key and keeps its identity fingerprint; `cmd/job` answers say `"mode": "simulation-only"` and `"observed": false` (nothing looks at OpenPnP: the machine state is the one the requester declares) and an ABORT through it says that nothing was stopped; the gate and the hand-off trace share one board-identifier rule, `cmd/handoff` accepts `slot_id`, `rack_id` and `table_id`, and a `machine.xml` with a DOCTYPE is refused in any encoding; the bridge announces itself on an `availability` topic with a Last Will. *(implemented, tested in `tests/test_hardening.py`)*
 * ✅ **Follows the global stop (off by default):** with `HYDRA_UMC_OPENPNP_GLOBAL_STOP=1` the bridge reads the retained announcement of the server on `hydra/swarm/safety/estop`; while it says `SAFE_STOP`, or cannot be read, it refuses with a reason: a job (an abort passes), a hand-off and asserting an SMEMA line. Stops and read-only requests keep working and only `READY` ends the refusal. *(implemented, tested against a real broker; never run with a real server)*
+* ✅ **SMEMA lines chosen from the environment (off by default):** `smema_from_environment()` builds the receiver and the sender from `HYDRA_UMC_OPENPNP_SMEMA` = `off` (default), `simulated` (a `SimulatedSmemaNeighbour` per role, no hardware) or `gpio` (`..._CHIP` and, for each role the cell plays, `..._RECEIVER_INPUT` / `..._RECEIVER_OUTPUT` and `..._SENDER_INPUT` / `..._SENDER_OUTPUT`, with `..._INPUT_ACTIVE_LOW` / `..._OUTPUT_ACTIVE_LOW` for an interface board that inverts). A role with only one of its two lines, a line used twice or a missing chip is refused before any line is opened. *(implemented, tested with a recorder instead of libgpiod; the real lines and the 12 to 24 V interface board are untried hardware)*
 
 ## 🔒 Security & Safety
 
@@ -184,7 +185,7 @@ The user name, the password and the TLS files come from the `HYDRA_MQTT_*` varia
 
 ## 🧪 Testing
 
-248 automated `unittest` cases run with `python tools/build_test.py` (it also compiles every module). The tests need no hardware, no network and no optional package: the ones that would need `paho-mqtt`, `pyserial` or a vendor library use a stand-in or are skipped when the package is missing.
+255 automated `unittest` cases run with `python tools/build_test.py` (it also compiles every module). The tests need no hardware, no network and no optional package: the ones that would need `paho-mqtt`, `pyserial` or a vendor library use a stand-in or are skipped when the package is missing.
 
 | Test file | Tests | What it covers |
 |---|---|---|
@@ -211,7 +212,7 @@ bash build-test.sh
 bash build.sh
 ```
 
-`build-test` compiles every module under `src/` with `py_compile` and runs the full `unittest` suite discovered under `tests/` (`test_board_flow.py`, `test_mqtt_transport.py` - 248 tests), proving board-traceability rejection and fail-safe gating among everything else covered — it never modifies the repository. `build` runs that same validation first and, only on success, calls `tools/bump_version.py` to synchronize the version across `pyproject.toml`, `hydra-umc.project.json` and `CHANGELOG.md`. There is no live machine `run` command yet — that requires a validated OpenPnP integration.
+`build-test` compiles every module under `src/` with `py_compile` and runs the full `unittest` suite discovered under `tests/` (`test_board_flow.py`, `test_mqtt_transport.py` - 255 tests), proving board-traceability rejection and fail-safe gating among everything else covered — it never modifies the repository. `build` runs that same validation first and, only on success, calls `tools/bump_version.py` to synchronize the version across `pyproject.toml`, `hydra-umc.project.json` and `CHANGELOG.md`. There is no live machine `run` command yet — that requires a validated OpenPnP integration.
 
 ## 🩺 Troubleshooting
 
@@ -268,7 +269,7 @@ HYDRA-UMC-BRIDGE-OPENPNP/
 
 **Known limits today**
 
-**Real today:** version `0.2.3`, a locally tested traceable PCB hand-off core (`BoardFlow`) backed by `HYDRA-UMC-SDK`'s shared job gate, a real MQTT command/evidence transport (`mqtt_transport.py`), a deterministic 248-test `unittest` suite, a saved-profile inspector reporting real OpenPnP actuator/signaler/nozzle-tip evidence alongside head/camera/driver/feeder counts, a visible read-only OpenPnP menu-script template, identity-bound hand-off/cycle simulations, and a CI-verified non-sensitive JSON evidence contract with no machine I/O.
+**Real today:** version `0.2.3`, a locally tested traceable PCB hand-off core (`BoardFlow`) backed by `HYDRA-UMC-SDK`'s shared job gate, a real MQTT command/evidence transport (`mqtt_transport.py`), a deterministic 255-test `unittest` suite, a saved-profile inspector reporting real OpenPnP actuator/signaler/nozzle-tip evidence alongside head/camera/driver/feeder counts, a visible read-only OpenPnP menu-script template, identity-bound hand-off/cycle simulations, and a CI-verified non-sensitive JSON evidence contract with no machine I/O.
 
 **Integration boundary:** OpenPnP retains placement kinematics, feeder control and raw motion at all times; this bridge only ever gates and traces the *hand-off* around it — robot loading, native placement completion, robot unloading.
 

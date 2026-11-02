@@ -15,7 +15,7 @@ from .handoff import (
     simulate_board_cycle,
     simulate_board_handoff,
 )
-from .smema import SimulatedSmemaNeighbour, SmemaReceiver, SmemaSender, open_smema_gpio
+from .smema import SimulatedSmemaNeighbour, SmemaConfigError, SmemaReceiver, SmemaSender, open_smema_gpio, smema_from_environment, smema_mode_from_environment
 from .traceability import BoardTrace, BoardTraceRecorder, DatalakeSink, datalake_samples
 from .board_code import CodeCheck, VisionNodeCodeSource, board_code_mode_from_environment, check_board_code
 from .observation import OpenPnpObservation, OpenPnpStateSource, read_state_file
@@ -47,6 +47,9 @@ __all__ = [
     "SmemaReceiver",
     "SmemaSender",
     "open_smema_gpio",
+    "SmemaConfigError",
+    "smema_from_environment",
+    "smema_mode_from_environment",
     "OpenPnpObservation",
     "OpenPnpStateSource",
     "read_state_file",

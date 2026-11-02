@@ -40,6 +40,9 @@ __all__ = [
     "SmemaSender",
     "SimulatedSmemaNeighbour",
     "open_smema_gpio",
+    "SmemaConfigError",
+    "smema_from_environment",
+    "smema_mode_from_environment",
 ]
 
 DEFAULT_SAMPLES = 3
@@ -342,3 +345,111 @@ def open_smema_gpio(
         },
     )
     return _GpiodInput(request, input_offset, input_active_low), _GpiodOutput(request, output_offset, output_active_low)
+
+
+# --- choosing the lines from the environment of the service -------------------------------------------------------------
+
+MODE_ENVIRONMENT = "HYDRA_UMC_OPENPNP_SMEMA"
+MODES = ("off", "simulated", "gpio")
+
+
+class SmemaConfigError(ValueError):
+    """The SMEMA settings of the environment are wrong; the service must not start with a guess about a wire."""
+
+
+def smema_mode_from_environment(environment: dict[str, str] | None = None) -> str:
+    """``off`` (the default, also for an empty or unknown value is refused), ``simulated`` or ``gpio``."""
+    import os
+
+    env = environment if environment is not None else os.environ
+    value = env.get(MODE_ENVIRONMENT, "").strip().lower()
+    if not value:
+        return "off"
+    if value not in MODES:
+        raise SmemaConfigError(f"{MODE_ENVIRONMENT} must be one of {', '.join(MODES)}, got {value!r}")
+    return value
+
+
+def _offset(env: dict[str, str], name: str) -> int | None:
+    text = env.get(name, "").strip()
+    if not text:
+        return None
+    try:
+        value = int(text)
+    except ValueError as error:
+        raise SmemaConfigError(f"{name} must be a line number, got {text!r}") from error
+    if value < 0:
+        raise SmemaConfigError(f"{name} must not be negative")
+    return value
+
+
+def _flag(env: dict[str, str], name: str) -> bool:
+    return env.get(name, "").strip().lower() in {"1", "true", "yes", "on"}
+
+
+def smema_from_environment(
+    environment: dict[str, str] | None = None,
+    *,
+    open_gpio: Callable[..., tuple[InputLine, OutputLine]] | None = None,
+    simulated_neighbours: dict[str, SimulatedSmemaNeighbour] | None = None,
+) -> tuple[SmemaReceiver | None, SmemaSender | None]:
+    """The SMEMA receiver and sender the settings ask for, ``(None, None)`` while ``HYDRA_UMC_OPENPNP_SMEMA`` is not set (off).
+
+    ``simulated``: each role gets a ``SimulatedSmemaNeighbour`` (put the ones you want to drive in ``simulated_neighbours``
+    under ``receiver`` / ``sender``); it needs no hardware. ``gpio``: ``HYDRA_UMC_OPENPNP_SMEMA_CHIP`` and, for each role the cell
+    plays, its two line numbers: ``..._RECEIVER_INPUT`` (board available, read) and ``..._RECEIVER_OUTPUT`` (machine ready,
+    driven); ``..._SENDER_INPUT`` (machine ready, read) and ``..._SENDER_OUTPUT`` (board available, driven). The polarity is
+    ``..._INPUT_ACTIVE_LOW`` / ``..._OUTPUT_ACTIVE_LOW`` (1 for an interface board that inverts). Lines are never shared and a role
+    with only one of its two lines is refused. The real lines were not tried on hardware.
+    """
+    import os
+
+    env = dict(environment if environment is not None else os.environ)
+    mode = smema_mode_from_environment(env)
+    if mode == "off":
+        return None, None
+    prefix = MODE_ENVIRONMENT + "_"
+    roles = {
+        role: (_offset(env, f"{prefix}{role.upper()}_INPUT"), _offset(env, f"{prefix}{role.upper()}_OUTPUT")) for role in ("receiver", "sender")
+    }
+    for role, (first, second) in roles.items():
+        if (first is None) != (second is None):
+            raise SmemaConfigError(f"the {role} needs both {prefix}{role.upper()}_INPUT and {prefix}{role.upper()}_OUTPUT")
+    played = [role for role, (first, _) in roles.items() if first is not None]
+    if mode == "gpio":
+        chip = env.get(prefix + "CHIP", "").strip()
+        if not chip:
+            raise SmemaConfigError(f"{prefix}CHIP is required in gpio mode")
+        if not played:
+            raise SmemaConfigError("gpio mode needs the lines of at least one role (receiver or sender)")
+        lines = [offset for role in played for offset in roles[role] if offset is not None]
+        if len(set(lines)) != len(lines):
+            raise SmemaConfigError("the SMEMA lines must all be different")
+    else:
+        played = played or ["receiver", "sender"]
+    opener = open_gpio or open_smema_gpio
+    neighbours = simulated_neighbours or {}
+    receiver: SmemaReceiver | None = None
+    sender: SmemaSender | None = None
+    for role in played:
+        if mode == "simulated":
+            neighbour = neighbours.get(role) or SimulatedSmemaNeighbour()
+            if role == "receiver":
+                receiver = SmemaReceiver(neighbour.board_available_line(), neighbour.output())
+            else:
+                sender = SmemaSender(neighbour.output(), neighbour.machine_ready_line())
+            continue
+        input_offset, output_offset = roles[role]
+        assert input_offset is not None and output_offset is not None  # a role in `played` has both lines (checked above)
+        line_in, line_out = opener(
+            chip,
+            input_offset=input_offset,
+            output_offset=output_offset,
+            input_active_low=_flag(env, prefix + "INPUT_ACTIVE_LOW"),
+            output_active_low=_flag(env, prefix + "OUTPUT_ACTIVE_LOW"),
+        )
+        if role == "receiver":
+            receiver = SmemaReceiver(line_in, line_out)
+        else:
+            sender = SmemaSender(line_out, line_in)
+    return receiver, sender

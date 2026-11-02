@@ -64,3 +64,7 @@ While the last announcement says `SAFE_STOP`, says anything but `READY`, or cann
 ## Hardware acceptance gate
 
 Identify the machine/profile and fixture, read state without motion, bind an inspected profile to a physical machine, verify board/recipe/lot traceability, test controlled stop, then conduct dry hand-off HIL trials. Native OpenPnP/machine safety remains authoritative.
+
+### Choosing the SMEMA lines
+
+`smema_from_environment()` returns `(receiver, sender)`, both `None` while `HYDRA_UMC_OPENPNP_SMEMA` is unset or `off`. `simulated` gives each role a `SimulatedSmemaNeighbour` (no hardware). `gpio` needs `HYDRA_UMC_OPENPNP_SMEMA_CHIP` and, for each role the cell plays, both of its lines: `..._RECEIVER_INPUT` (board available, read) and `..._RECEIVER_OUTPUT` (machine ready, driven); `..._SENDER_INPUT` (machine ready, read) and `..._SENDER_OUTPUT` (board available, driven). `..._INPUT_ACTIVE_LOW=1` and `..._OUTPUT_ACTIVE_LOW=1` say that the interface board inverts. The result goes to `OpenPnpMqttBridge(smema_receiver=..., smema_sender=...)`; the outputs are still asserted only through the shared gate. The real lines and the 12 to 24 V interface board have not been tried.

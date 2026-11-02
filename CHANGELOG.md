@@ -4,6 +4,8 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+- **SMEMA lines chosen from the environment (off by default):** `smema_from_environment()` builds the `SmemaReceiver` and `SmemaSender` from `HYDRA_UMC_OPENPNP_SMEMA` (`off`, `simulated` or `gpio`) and, for `gpio`, `HYDRA_UMC_OPENPNP_SMEMA_CHIP`, `..._RECEIVER_INPUT` / `..._RECEIVER_OUTPUT`, `..._SENDER_INPUT` / `..._SENDER_OUTPUT` and the polarity flags `..._INPUT_ACTIVE_LOW` / `..._OUTPUT_ACTIVE_LOW`. A role with one line only, a line used twice or a missing chip is refused before any line is opened. Tested with a recorder instead of libgpiod.
+
 ## [0.2.3] - The global stop guard comes from the shared SDK and the MQTT transport has optional limits, off by default
 
 - **The guard of the global stop comes from the shared SDK:** the bridge no longer carries its own copy of `global_stop`; it imports `GlobalStopGuard`, `GlobalStopSettings` and `follow_on_connect` from `hydra_umc_sdk.global_stop`, so every bridge refuses moving commands under the same rule. The environment variables and the `[global_stop]` table are unchanged.
