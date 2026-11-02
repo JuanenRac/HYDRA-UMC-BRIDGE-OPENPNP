@@ -4,6 +4,8 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+- **A script for the bench:** `docs/BENCH_TESTS.md` lists the steps, the setup and the expected result of the tests that need a real machine; every step is marked as not executed.
+
 - **SMEMA lines chosen from the environment (off by default):** `smema_from_environment()` builds the `SmemaReceiver` and `SmemaSender` from `HYDRA_UMC_OPENPNP_SMEMA` (`off`, `simulated` or `gpio`) and, for `gpio`, `HYDRA_UMC_OPENPNP_SMEMA_CHIP`, `..._RECEIVER_INPUT` / `..._RECEIVER_OUTPUT`, `..._SENDER_INPUT` / `..._SENDER_OUTPUT` and the polarity flags `..._INPUT_ACTIVE_LOW` / `..._OUTPUT_ACTIVE_LOW`. A role with one line only, a line used twice or a missing chip is refused before any line is opened. Tested with a recorder instead of libgpiod.
 
 ## [0.2.3] - The global stop guard comes from the shared SDK and the MQTT transport has optional limits, off by default
