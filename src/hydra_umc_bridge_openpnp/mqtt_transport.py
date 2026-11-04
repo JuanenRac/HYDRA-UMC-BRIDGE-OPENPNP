@@ -70,6 +70,7 @@ from .board_flow import BoardFlow
 from .handoff import BoardIdentity, SimulatedBoardHandoff, simulate_board_handoff
 from .board_code import CodeCheck, CodeSource, MODE_OFF, board_code_mode_from_environment, check_board_code
 from .observation import OpenPnpObservation
+from .remote_settings import SETTINGS_TOPIC, parse_remote_settings, remote_settings_allowed
 from .smema import SmemaDecision, SmemaReceiver, SmemaSender
 from .traceability import BoardTraceRecorder
 
@@ -108,6 +109,7 @@ class OpenPnpMqttBridge:
         code_source: CodeSource | None = None,
         code_mode: str | None = None,
         global_stop: GlobalStopGuard | GlobalStopSettings | None = None,
+        remote_settings: bool | None = None,
     ) -> None:
         self._cell_state = cell_state
         # reads the state OpenPnP last reported (observation.OpenPnpStateSource); None keeps the old behaviour: the claim of the job
@@ -127,6 +129,8 @@ class OpenPnpMqttBridge:
         self._code_mode = code_mode if code_mode is not None else board_code_mode_from_environment()
         if self._code_mode != MODE_OFF and code_source is None:
             self._code_mode = MODE_OFF  # nothing reads codes here: there is nothing to compare
+        # the retained switches of Server Admin (remote_settings.py): followed only when the host of the bridge allows it
+        self.remote_settings = remote_settings_allowed() if remote_settings is None else bool(remote_settings)
         self._board_flow = BoardFlow()
         # docs/BRIDGE_CONTRACT.md: the idempotency key of a job is handled once; a repeat gets the answer that was given, nothing is run again
         self._idempotency = idempotency
@@ -276,6 +280,18 @@ class OpenPnpMqttBridge:
 
     # --- the code on the board -------------------------------------------------------------------------------------
 
+    def note_remote_settings(self, payload: bytes) -> dict[str, str]:
+        """Apply the board code mode of a settings message and return what was applied ({} when the host does not allow remote settings or the message is not valid)."""
+        if not self.remote_settings:
+            return {}
+        found = parse_remote_settings(payload)
+        if not found:
+            return {}
+        mode = found["boardCode"]
+        self._code_mode = mode if (mode == MODE_OFF or self._code_source is not None) else MODE_OFF
+        _LOG.info("remote settings applied: boardCode=%s", self._code_mode)
+        return found
+
     def _check_code(self, phase: JobPhase, declared: str | None) -> CodeCheck | None:
         """Compare the board of the job with the code on the board, for the phases in which a board arrives. None when it is not checked."""
         if self._code_mode == MODE_OFF or self._code_source is None or phase not in (JobPhase.PREPARE, JobPhase.LOAD):
@@ -424,10 +440,27 @@ class MessageDispatcher(SharedMessageDispatcher):
     def on_message(self, client: object, userdata: object, message: object) -> None:
         # the announcement of the global stop is retained: it is the state, not a replay, so it is read before the retained check of the shared dispatcher
         guard = self._global_stop
+        if getattr(self._bridge, "remote_settings", False) and getattr(message, "topic", None) == SETTINGS_TOPIC:
+            self._bridge.note_remote_settings(bytes(message.payload))  # type: ignore[attr-defined]  # retained: it is the state of the switches
+            return
         if guard is not None and guard.enabled and getattr(message, "topic", None) == guard.topic:
             guard.observe(bytes(message.payload))  # type: ignore[attr-defined]
             return
         super().on_message(client, userdata, message)
+
+
+def _on_connected(bridge: object, guard: object):
+    """After every (re)connect: follow the global stop (when it is on) and the retained settings of the server (when the host allows them)."""
+    follow_stop = follow_on_connect(guard) if isinstance(guard, GlobalStopGuard) else None
+    if not getattr(bridge, "remote_settings", False):
+        return follow_stop
+
+    def on_connected(client: object) -> None:
+        client.subscribe(SETTINGS_TOPIC, qos=1)  # type: ignore[attr-defined]
+        if follow_stop is not None:
+            follow_stop(client)
+
+    return on_connected
 
 
 def run_forever(
@@ -469,7 +502,7 @@ def run_forever(
             password=password,
             max_connect_attempts=max_connect_attempts,
             connect_retry_delay_seconds=connect_retry_delay_seconds,
-            on_connected=follow_on_connect(guard) if isinstance(guard, GlobalStopGuard) else None,
+            on_connected=_on_connected(bridge, guard),
             **hardening.connect_kwargs(),
         )
         client.loop_forever()  # type: ignore[attr-defined]

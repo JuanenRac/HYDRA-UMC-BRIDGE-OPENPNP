@@ -4,6 +4,7 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+- **The board code mode follows Server Admin:** the bridge listens to the retained topic `hydra/bridges/openpnp/settings` and applies `boardCode` (`off`, `advisory` or `required`, the same as `HYDRA_UMC_OPENPNP_BOARD_CODE`) without a restart. It listens only when the host of the bridge allows it with `HYDRA_UMC_OPENPNP_REMOTE_SETTINGS=1` (off by default); otherwise the topic is not even subscribed and the environment keeps deciding. A mode other than `off` still needs a code source. A message that is too large, unreadable, of another schema or with an unknown word changes nothing. 8 more tests.
 ## [0.2.4] - The pick-and-place bridge chooses its SMEMA lines from the environment (off, simulated or GPIO; off by default) and ships a bench script for the tests that need a real machine, all marked as not executed
 
 - **A script for the bench:** `docs/BENCH_TESTS.md` lists the steps, the setup and the expected result of the tests that need a real machine; every step is marked as not executed.
