@@ -4,6 +4,8 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+- **The build test of the repository compiles only on CI or when allowed:** for the stacks that compile (`rust`, `go`, `android`, `flutter`, `firmware-c`), `tools/build_test.py` prints `BUILD_TEST=SKIPPED` with exit status 2 on a plain PC, never a pass; `ALLOW_LOCAL_BUILD=1` allows it and a CI runner always may. The `python` and `node` stacks are not locked.
+
 - **The settings of the server are signed:** the retained settings message (schema 2) carries a counter (`seq`), `issued_at_ms`, `expires_in_ms` and an HMAC-SHA256 `signature` of the shared signed-command format of the SDK, made with the key of the server for this bridge. The bridge keeps that key in the file named by `HYDRA_UMC_OPENPNP_SETTINGS_KEY_FILE` and follows the topic only when the host allows remote settings AND the key is usable; even with `HYDRA_UMC_OPENPNP_REMOTE_SETTINGS=1` an unsigned message (or one of the old unsigned format), one signed with another key, altered afterwards, expired, issued in the future, asking too long a life, or older than the last one applied (a replay) changes nothing. 9 more tests.
 
 - **The board code mode follows Server Admin:** the bridge listens to the retained topic `hydra/bridges/openpnp/settings` and applies `boardCode` (`off`, `advisory` or `required`, the same as `HYDRA_UMC_OPENPNP_BOARD_CODE`) without a restart. It listens only when the host of the bridge allows it with `HYDRA_UMC_OPENPNP_REMOTE_SETTINGS=1` (off by default); otherwise the topic is not even subscribed and the environment keeps deciding. A mode other than `off` still needs a code source. A message that is too large, unreadable, of another schema or with an unknown word changes nothing. 8 more tests.
