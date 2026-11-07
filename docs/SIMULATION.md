@@ -19,6 +19,7 @@ workflow named "Simulation bench" does exactly this on a clean Linux runner on e
 | File | What it exercises |
 |------|-------------------|
 | `tests/test_smema.py` | stable reading of the SMEMA lines and the receiver side against the simulated neighbour |
+| `tests/test_smema_line_simulation.py` | boards travelling tick by tick through simulated upstream and downstream conveyors, with a stalled neighbour, a stop of the cell and bad lines |
 | `tests/test_smema_environment.py` | the SMEMA settings read from the environment |
 | `tests/test_board_flow.py` | board flow through the bridge |
 | `tests/test_event_publish.py` | the events the bridge publishes (QoS 1) |
