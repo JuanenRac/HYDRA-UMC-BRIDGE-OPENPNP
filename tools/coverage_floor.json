@@ -1,0 +1,9 @@
+[
+  {
+    "stack": "python",
+    "floor": 96,
+    "source": "src/hydra_umc_bridge_openpnp",
+    "tests": "tests",
+    "pythonpath": "src"
+  }
+]

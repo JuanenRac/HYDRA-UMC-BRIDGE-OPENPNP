@@ -4,6 +4,7 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+- **The tests have a coverage floor of 96 %:** `tools/coverage_floor.json` holds the measured line and branch coverage of the bridge, rounded down (96.8 % measured in the CI environment), and `python tools/hydra_project_tool.py coverage` warns when it falls below it (a warning, not a CI check). Tooling only: no behaviour changes.
 - **A whole SMEMA line in memory:** `tests/test_smema_line_simulation.py` moves boards tick by tick from a simulated upstream conveyor through the real receiver and sender of the bridge to a simulated downstream conveyor, and checks that the outputs are never up while the machine runs or the fixture is occupied, that a stalled downstream holds the board and stops further intake, that a stop of the cell withdraws both outputs, and that a bouncing, unreadable or unwritable line moves nothing. Simulator evidence only; no real conveyor or 12-24 V cable has been tried.
 - **A visible simulation bench:** the workflow "Simulation bench" runs the emulators and fakes of the bridge without hardware on every push, by hand and once a week; `docs/SIMULATION.md` says what it exercises and what it cannot show.
 
