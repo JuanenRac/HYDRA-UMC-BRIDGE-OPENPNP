@@ -4,7 +4,11 @@
 # Copyright (C) 2026 JuanenRac (Electro Hobby 3D) <electrohobby3d@gmail.com>
 # GPL-3.0-or-later - see LICENSE
 # =============================================================================
-"""Report a safe summary of a saved OpenPnP machine XML configuration."""
+"""Report a safe summary of a saved OpenPnP machine XML configuration.
+
+The answer is JSON on standard output by default, for other programs; `--text` prints the same summary for a person. `--json` is still accepted and
+changes nothing. Exit codes: 0 the configuration was read, 1 it could not be (the JSON says why), 2 the arguments are wrong (argparse).
+"""
 
 from __future__ import annotations
 
@@ -28,11 +32,14 @@ def main() -> int:
         description="Read an OpenPnP machine.xml file without opening OpenPnP or sending machine commands."
     )
     parser.add_argument("--config", required=True, help="Path to OpenPnP machine.xml")
-    parser.add_argument("--json", action="store_true", help="Emit the profile summary as JSON")
+    parser.add_argument("--json", action="store_true", help="Emit the profile summary as JSON (the default; kept for the scripts that already pass it)")
+    parser.add_argument("--text", action="store_true", help="Print the summary as text for a person instead of JSON")
     args = parser.parse_args()
+    if args.json and args.text:
+        parser.error("--json and --text cannot be used together")
 
     profile = inspect_machine_configuration(args.config)
-    if args.json:
+    if not args.text:
         print(json.dumps(asdict(profile), indent=2, ensure_ascii=False))
     else:
         print(f"OPENPNP_PROFILE={'PASS' if profile.available else 'FAIL'}")

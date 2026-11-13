@@ -12,4 +12,4 @@ if [ "$#" -ne 1 ]; then
   echo 'Usage: ./inspect-openpnp-config.sh <path-to-machine.xml>' >&2
   exit 2
 fi
-python3 tools/inspect_openpnp_config.py --config "$1"
+python3 tools/inspect_openpnp_config.py --text --config "$1"

@@ -5,7 +5,7 @@ Every test below is **not executed**: the scripts have run against the JavaScrip
 ## What the software already covers (no machine needed)
 
 - The unit tests, the script harness and the broker integration test run with `python tools/hydra_project_tool.py test`.
-- `inspect-openpnp-config.*` reads an OpenPnP configuration folder and reports what the bridge would use.
+- `inspect-openpnp-config.*` reads an OpenPnP configuration folder and reports what the bridge would use. The launchers print it as text for a person; `python tools/inspect_openpnp_config.py --config FILE` prints JSON (add `--text` for the text). Exit code 0: the file was read; 1: it could not be; 2: wrong arguments.
 
 ## Setup
 
