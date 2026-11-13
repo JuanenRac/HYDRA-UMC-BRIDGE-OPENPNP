@@ -4,6 +4,7 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+- **BREAKING for scripts that read the output of `tools/inspect_openpnp_config.py`: the default is now JSON, and `--text` prints the summary for a person:** the tool printed `OPENPNP_PROFILE=PASS` and a line of counts unless `--json` was given; now it prints the JSON profile unless `--text` is given, and `--json` is still accepted and changes nothing. Together with `--text` it is refused. The exit codes are documented: 0 the configuration was read, 1 it could not be (the JSON says why), 2 wrong arguments. The launchers `inspect-openpnp-config.sh` and `.bat` pass `--text`, so what a person sees does not change; a script that parsed `OPENPNP_PROFILE=` must pass `--text` or read the JSON. `tests/test_inspect_cli.py` (6 tests).
 - **A coverage job in CI:** the suite is run under coverage (lines and branches) on every push and the job fails below a floor that does not go down.
 - **README: the platform statement:** a note says that where the README speaks of the CM5 it means the pilot bench that runs today, and that the target platform of HYDRA-UMC, an NVIDIA Jetson Orin NX 16 GB, is a design that has not been built or tested.
 - **The tests have a coverage floor of 96 %:** `tools/coverage_floor.json` holds the measured line and branch coverage of the bridge, rounded down (96.8 % measured in the CI environment), and `python tools/hydra_project_tool.py coverage` warns when it falls below it (a warning, not a CI check). Tooling only: no behaviour changes.

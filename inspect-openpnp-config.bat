@@ -22,7 +22,7 @@ if "%~1"=="" (
   exit /b 2
 )
 where py >nul 2>&1
-if errorlevel 1 (python tools\inspect_openpnp_config.py --config "%~1") else (py -3 tools\inspect_openpnp_config.py --config "%~1")
+if errorlevel 1 (python tools\inspect_openpnp_config.py --text --config "%~1") else (py -3 tools\inspect_openpnp_config.py --text --config "%~1")
 set "RESULT=%ERRORLEVEL%"
 echo.
 %KEEP_OPEN%
