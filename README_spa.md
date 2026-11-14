@@ -156,6 +156,7 @@ Topics bajo `hydra/bridges/openpnp/`; no hay verbo de parada (`STOP_VERBS` está
 | `HYDRA_UMC_OPENPNP_BOARD_CODE` | `off` | `off`, `advisory` o `required`; un valor desconocido equivale a `off` |
 | `HYDRA_UMC_OPENPNP_STATE_FILE` | sin definir | ruta del fichero que escriben los scripts de eventos de OpenPnP; sin definir significa sin fuente de estado |
 | `HYDRA_UMC_OPENPNP_STATE_MAX_AGE_SECONDS` | `900` | cuánto puede envejecer el fichero de estado antes de dejar de ser fiable |
+| `HYDRA_UMC_OPENPNP_IN_DOUBT_CONSULT` | desactivado | `1` responde a una clave repetida de trabajo o de traspaso cuyo primer intento no dejó respuesta con el estado que el propio OpenPnP informó, en lugar de rechazarla; no se ejecuta nada de nuevo |
 | `HYDRA_UMC_OPENPNP_GLOBAL_STOP` | desactivado | `1` sigue la parada global del servidor: mientras el último anuncio del tema retenido `hydra/swarm/safety/estop` diga `SAFE_STOP` (o no se pueda leer), el bridge rechaza con un motivo: un trabajo (un aborto pasa), un traspaso y activar una línea SMEMA; solo `READY` lo termina. `HYDRA_UMC_OPENPNP_GLOBAL_STOP_TOPIC` cambia el tema y `HYDRA_UMC_OPENPNP_GLOBAL_STOP_STRICT=1` rechaza también hasta que llegue el primer anuncio |
 | `HYDRA_MQTT_USERNAME` | ninguno | El usuario MQTT; el broker lo liga a un prefijo de ID de cliente |
 | `HYDRA_MQTT_PASSWORD` | ninguno | La contraseña; solo vale junto con el usuario |

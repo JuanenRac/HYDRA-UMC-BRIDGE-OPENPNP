@@ -55,6 +55,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import time
 from dataclasses import asdict
 from typing import Any, Callable
@@ -87,6 +88,13 @@ STOP_VERBS: frozenset[str] = frozenset()
 MOVING_VERBS: frozenset[str] = frozenset({"cmd/handoff"})
 SMEMA_ASSERTIONS = {"cmd/smema_ready": "ready", "cmd/smema_offer": "available"}
 GLOBAL_STOP_ENVIRONMENT_NAME = "OPENPNP"
+# Off unless this is "1": a repeated key whose first attempt left no answer is answered with the state OpenPnP itself reported instead of a plain refusal.
+IN_DOUBT_CONSULT_ENVIRONMENT = "HYDRA_UMC_OPENPNP_IN_DOUBT_CONSULT"
+
+
+def in_doubt_consult_from_environment() -> bool:
+    return os.environ.get(IN_DOUBT_CONSULT_ENVIRONMENT, "").strip() == "1"
+
 
 _LOG = logging.getLogger(__name__)
 
@@ -111,6 +119,7 @@ class OpenPnpMqttBridge:
         global_stop: GlobalStopGuard | GlobalStopSettings | None = None,
         remote_settings: bool | None = None,
         settings_verifier: SettingsVerifier | None = None,
+        in_doubt_consult: bool | None = None,
     ) -> None:
         self._cell_state = cell_state
         # reads the state OpenPnP last reported (observation.OpenPnpStateSource); None keeps the old behaviour: the claim of the job
@@ -140,6 +149,8 @@ class OpenPnpMqttBridge:
         self._board_flow = BoardFlow()
         # docs/BRIDGE_CONTRACT.md: the idempotency key of a job is handled once; a repeat gets the answer that was given, nothing is run again
         self._idempotency = idempotency
+        # a repeated key whose first attempt left no answer is refused, or (HYDRA_UMC_OPENPNP_IN_DOUBT_CONSULT=1, off by default) answered with the state OpenPnP itself reported; it is never run again
+        self.in_doubt_consult = in_doubt_consult_from_environment() if in_doubt_consult is None else bool(in_doubt_consult)
         # follows the global stop that the server announces (global_stop.py); off unless HYDRA_UMC_OPENPNP_GLOBAL_STOP=1 or a guard is given
         if isinstance(global_stop, GlobalStopGuard):
             self.global_stop = global_stop
@@ -425,9 +436,37 @@ class OpenPnpMqttBridge:
         if self._idempotency is None or self._idempotency.claim(key):
             return None
         stored = self._idempotency.recall(key)
+        if stored is None and self.in_doubt_consult:
+            stored = self._report_for_key_in_doubt(key)
         if stored is None:
             stored = json.dumps({"allowed": False, "handoff": "none", "reason": "this idempotency_key was already handled"})
         return MqttPublish(result_topic, stored)
+
+    def _report_for_key_in_doubt(self, key: str) -> str | None:
+        """What OpenPnP says now about a job or hand-off whose first attempt left no answer; it is stored, so a third repeat gets the same one.
+
+        It is a reading, not a decision: nothing is planned or simulated again. Only a state that OpenPnP itself reported counts (the state file its event scripts write): without a state source,
+        or with a reading that is old, missing or not from those scripts, there is no answer and the repeat is refused.
+        """
+
+        observation = self._read_state()
+        if observation is None or not observation.observed:
+            return None
+        report = {
+            "allowed": False,
+            "handoff": "none",
+            "in_doubt": True,
+            "forwarded": False,
+            "mode": "simulation-only",
+            "observed": True,
+            "machine_state": observation.machine_state.value,
+            "event": observation.event,
+            "job": observation.job,
+            "reason": f"the first attempt of this job left no answer; OpenPnP now reports {observation.machine_state.value} and the job is not run again",
+        }
+        answer = json.dumps(report)
+        self._idempotency.remember(key, answer)  # type: ignore[union-attr]
+        return answer
 
     def _answer(self, key: str, publish: MqttPublish) -> MqttPublish:
         if self._idempotency is not None:
