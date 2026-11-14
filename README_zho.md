@@ -156,6 +156,7 @@ flowchart LR
 | `HYDRA_UMC_OPENPNP_BOARD_CODE` | `off` | `off`、`advisory` 或 `required`；未知值等同于 `off` |
 | `HYDRA_UMC_OPENPNP_STATE_FILE` | 未设置 | OpenPnP 事件脚本写入的文件路径；未设置表示没有状态来源 |
 | `HYDRA_UMC_OPENPNP_STATE_MAX_AGE_SECONDS` | `900` | 状态文件多旧之后不再可信 |
+| `HYDRA_UMC_OPENPNP_IN_DOUBT_CONSULT` | 关闭 | `1` 时，对首次尝试未留下应答的重复任务或交接键，不再直接拒绝，而是用OpenPnP 自身上报的状态作答；不会再次执行任何操作 |
 | `HYDRA_UMC_OPENPNP_GLOBAL_STOP` | 关闭 | `1` 跟随服务器的全局停止：只要保留主题 `hydra/swarm/safety/estop` 上最新的通知是 `SAFE_STOP`（或无法读取），桥接就会带原因拒绝：任务（中止放行）、交接和置位 SMEMA 线；只有 `READY` 才能解除。`HYDRA_UMC_OPENPNP_GLOBAL_STOP_TOPIC` 可更改主题，`HYDRA_UMC_OPENPNP_GLOBAL_STOP_STRICT=1` 会在收到第一条通知之前也拒绝 |
 | `HYDRA_MQTT_USERNAME` | 无 | MQTT 用户名；代理将其绑定到客户端 ID 前缀 |
 | `HYDRA_MQTT_PASSWORD` | 无 | 密码；只能与用户名一起使用 |

@@ -156,6 +156,7 @@ flowchart LR
 | `HYDRA_UMC_OPENPNP_BOARD_CODE` | `off` | `off`・`advisory`・`required`。未知の値は `off` と同じです |
 | `HYDRA_UMC_OPENPNP_STATE_FILE` | 未設定 | OpenPnP のイベントスクリプトが書くファイルのパス。未設定なら状態の入力元なし |
 | `HYDRA_UMC_OPENPNP_STATE_MAX_AGE_SECONDS` | `900` | 状態ファイルが信頼されなくなるまでの古さの上限 |
+| `HYDRA_UMC_OPENPNP_IN_DOUBT_CONSULT` | オフ | `1` にすると、最初の試行が応答を残さなかった再送のジョブまたは受け渡しのキーを拒否せず、OpenPnP 自身が報告した状態で応答します。何も再実行されません |
 | `HYDRA_UMC_OPENPNP_GLOBAL_STOP` | オフ | `1` でサーバーのグローバル停止に従います。保持トピック `hydra/swarm/safety/estop` の最新の通知が `SAFE_STOP`（または読み取れない）の間、ブリッジは理由を付けて次を拒否します：ジョブ（中止は通す）、受け渡しとSMEMA ラインのアサート。解除は `READY` のみです。`HYDRA_UMC_OPENPNP_GLOBAL_STOP_TOPIC` でトピックを変更でき、`HYDRA_UMC_OPENPNP_GLOBAL_STOP_STRICT=1` は最初の通知が届くまでも拒否します |
 | `HYDRA_MQTT_USERNAME` | なし | MQTT のユーザー名。ブローカーはクライアント ID のプレフィックスに結び付けます |
 | `HYDRA_MQTT_PASSWORD` | なし | パスワード。ユーザー名と一緒にのみ有効です |
