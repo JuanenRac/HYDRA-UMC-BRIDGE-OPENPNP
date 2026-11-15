@@ -4,6 +4,9 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+
+## [0.2.6]
+
 - **The SDK pin and the shared tools are up to date:** the SDK dependency names the newest release tag, and the shared tools are the canonical copies again.
 - **A job or hand-off whose first attempt left no answer can be looked up instead of refused, off by default:** with `HYDRA_UMC_OPENPNP_IN_DOUBT_CONSULT=1` (or `in_doubt_consult=True`) a repeated idempotency key that was claimed but never answered (for example after a restart in the middle of a job) is answered with the state OpenPnP itself reported (`in_doubt`, `machine_state`, `event`, `job`, `observed: true`, `forwarded: false`), read from the state file of its event scripts. Nothing is planned or simulated again, the reading is stored so a further repeat gets the same answer, and without a state source, or with a reading that is old, missing or not from those scripts, the repeat stays refused. Without the switch the repeat is refused exactly as before. Tested with a scripted state source (`tests/test_in_doubt_consult.py`, simulation only).
 
@@ -14,6 +17,8 @@ All notable changes to this project are documented here.
 - **The tests have a coverage floor of 96 %:** `tools/coverage_floor.json` holds the measured line and branch coverage of the bridge, rounded down (96.8 % measured in the CI environment), and `python tools/hydra_project_tool.py coverage` warns when it falls below it (a warning, not a CI check). Tooling only: no behaviour changes.
 - **A whole SMEMA line in memory:** `tests/test_smema_line_simulation.py` moves boards tick by tick from a simulated upstream conveyor through the real receiver and sender of the bridge to a simulated downstream conveyor, and checks that the outputs are never up while the machine runs or the fixture is occupied, that a stalled downstream holds the board and stops further intake, that a stop of the cell withdraws both outputs, and that a bouncing, unreadable or unwritable line moves nothing. Simulator evidence only; no real conveyor or 12-24 V cable has been tried.
 - **A visible simulation bench:** the workflow "Simulation bench" runs the emulators and fakes of the bridge without hardware on every push, by hand and once a week; `docs/SIMULATION.md` says what it exercises and what it cannot show.
+
+- Successful incremental build: synchronized package metadata and `hydra-umc.project.json`.
 
 ## [0.2.5] - The build test of the repository compiles only on CI or when allowed: for the stacks that compile (rust, go, android, flutter, firmware-c), tools/buildtest.py prints BUILDTEST=SKIPPED with exit status 2 on a plain PC, never a... (and 2 more changes)
 
