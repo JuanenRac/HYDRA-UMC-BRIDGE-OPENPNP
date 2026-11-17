@@ -56,6 +56,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import threading
 import time
 from dataclasses import asdict
 from typing import Any, Callable
@@ -128,6 +129,11 @@ class OpenPnpMqttBridge:
         # the SMEMA lines toward the neighbours of the cell (smema.py); `fixture_empty` / `board_staged` are sensors: when given they
         # decide, and what a requester writes in a message is ignored
         self._smema_receiver = smema_receiver
+        # the last claims a requester made (used when nobody is asking: a status query and the watch), and the lock that keeps the watch thread and the dispatcher apart
+        self._claimed_empty = False
+        self._claimed_staged = False
+        self._smema_lock = threading.RLock()
+        self._last_smema_view: dict[str, object] | None = None
         self._smema_sender = smema_sender
         self._fixture_empty = fixture_empty
         self._board_staged = board_staged
@@ -229,11 +235,39 @@ class OpenPnpMqttBridge:
 
     # --- SMEMA ---------------------------------------------------------------------------------------------------
 
-    def _smema_inputs(self, claimed: dict[str, object]) -> tuple[bool, bool]:
-        """`fixture_empty` and `board_staged`: a sensor decides when there is one; otherwise the requester's word, which must be literally true."""
-        empty = self._fixture_empty() if self._fixture_empty is not None else claimed.get("fixture_empty") is True
-        staged = self._board_staged() if self._board_staged is not None else claimed.get("board_staged") is True
+    def _smema_inputs(self, claimed: dict[str, object], *, requested: bool = True) -> tuple[bool, bool]:
+        """`fixture_empty` and `board_staged`: a sensor decides when there is one; otherwise the requester's word, which must be literally true.
+
+        A reconciliation nobody asked for (the answer to a status query, the watch) has no claim of its own: it uses the last claim a requester made, never an empty one."""
+        if requested:
+            self._claimed_empty = claimed.get("fixture_empty") is True
+            self._claimed_staged = claimed.get("board_staged") is True
+        empty = self._fixture_empty() if self._fixture_empty is not None else self._claimed_empty
+        staged = self._board_staged() if self._board_staged is not None else self._claimed_staged
         return empty is True, staged is True
+
+    def withdraw_smema(self) -> None:
+        """Take both SMEMA outputs down (the safe state of the line): on shutdown and whenever the watch cannot tell."""
+        with self._smema_lock:
+            self._withdraw_smema()
+
+    def supervise(self) -> list[MqttPublish]:
+        """One round of the watch of the SMEMA outputs: reconcile them with the cell and the machine without any command, and return the `smema` state only when it changed.
+
+        Nothing is asserted here, only withdrawn: an output whose condition has stopped being true (the cell not READY, the machine running, the global stop) falls."""
+        if self._smema_receiver is None and self._smema_sender is None:
+            return []
+        with self._smema_lock:
+            observation = self._read_state()
+            observed = observation.machine_state if observation is not None and observation.observed else None
+            empty, staged = self._smema_inputs({}, requested=False)
+            self._reconcile_smema(observed, empty, staged)
+            view = self._smema_state()
+            seen = {key: value for key, value in json.loads(view.payload).items() if key != "published_at"}
+            if seen == self._last_smema_view:
+                return []
+            self._last_smema_view = seen
+            return [view]
 
     def _withdraw_smema(self) -> None:
         for output in (self._smema_receiver, self._smema_sender):
@@ -270,9 +304,13 @@ class OpenPnpMqttBridge:
             if not isinstance(decoded, dict):
                 return [MqttPublish(result_topic, json.dumps({"allowed": False, "asserted": False, "reason": "the payload must be a JSON object"}))]
             request = decoded
+        with self._smema_lock:
+            return self._handle_smema_locked(suffix, request, result_topic)
+
+    def _handle_smema_locked(self, suffix: str, request: dict[str, object], result_topic: str) -> list[MqttPublish]:
         observation = self._read_state()
         observed = observation.machine_state if observation is not None and observation.observed else None
-        empty, staged = self._smema_inputs(request)
+        empty, staged = self._smema_inputs(request, requested=suffix != "cmd/smema_status")
         # first of all, withdraw what is no longer allowed: whatever the command is, the outputs follow the cell
         self._reconcile_smema(observed, empty, staged)
         if suffix == "cmd/smema_status":
@@ -508,6 +546,41 @@ def _on_connected(bridge: object, guard: object):
     return on_connected
 
 
+SMEMA_WATCH_ENVIRONMENT_NAME = "HYDRA_UMC_OPENPNP_SMEMA_WATCH_S"
+DEFAULT_SMEMA_WATCH_SECONDS = 1.0
+
+
+def smema_watch_seconds(environment: dict[str, str] | None = None) -> float:
+    """How often the SMEMA outputs are checked without any command (default 1 s; `0` turns the watch off; anything unreadable or negative keeps the default)."""
+    raw = (os.environ if environment is None else environment).get(SMEMA_WATCH_ENVIRONMENT_NAME, "").strip()
+    if not raw:
+        return DEFAULT_SMEMA_WATCH_SECONDS
+    try:
+        value = float(raw)
+    except ValueError:
+        return DEFAULT_SMEMA_WATCH_SECONDS
+    return value if value >= 0 and value == value and value != float("inf") else DEFAULT_SMEMA_WATCH_SECONDS
+
+
+def _watch_smema(bridge: Any, client: object, interval: float, stop: threading.Event) -> None:
+    """Check the SMEMA outputs every `interval` seconds until `stop`; a round that fails takes the outputs down (never leaves them as they were)."""
+    while not stop.wait(interval):
+        try:
+            messages = bridge.supervise()
+        except Exception:  # noqa: BLE001 - not being able to look is not a reason to leave "ready" up
+            _LOG.exception("the watch of the SMEMA outputs failed; the outputs are withdrawn")
+            try:
+                bridge.withdraw_smema()
+            except Exception:  # noqa: BLE001
+                _LOG.exception("the SMEMA outputs could not be withdrawn")
+            continue
+        for item in messages:
+            try:
+                client.publish(item.topic, item.payload, qos=getattr(item, "qos", 0), retain=item.retain)  # type: ignore[attr-defined]
+            except Exception:  # noqa: BLE001 - a lost link is not a reason to stop watching
+                _LOG.warning("the SMEMA state could not be published")
+
+
 def run_forever(
     bridge: OpenPnpMqttBridge,
     host: str,
@@ -536,6 +609,7 @@ def run_forever(
     hardening = hardening if hardening is not None else hardening_from_environment(GLOBAL_STOP_ENVIRONMENT_NAME)
     dispatcher = MessageDispatcher(bridge, **hardening.dispatcher_kwargs())  # type: ignore[arg-type]  # the keywords are ints; the stop verbs stay the default
     guard = getattr(bridge, "global_stop", None)  # a bridge object that is not one of ours has none: nothing to follow
+    watch_stop = threading.Event()
     try:
         client = open_bridge_client(
             host,
@@ -550,6 +624,17 @@ def run_forever(
             on_connected=_on_connected(bridge, guard),
             **hardening.connect_kwargs(),
         )
+        interval = smema_watch_seconds()
+        has_smema = getattr(bridge, "_smema_receiver", None) is not None or getattr(bridge, "_smema_sender", None) is not None
+        if interval > 0 and has_smema:
+            threading.Thread(target=_watch_smema, args=(bridge, client, interval, watch_stop), name="smema-watch", daemon=True).start()
         client.loop_forever()  # type: ignore[attr-defined]
     finally:
+        watch_stop.set()
+        # leaving, for whatever reason, leaves the line with nothing asserted
+        if hasattr(bridge, "withdraw_smema"):
+            try:
+                bridge.withdraw_smema()
+            except Exception:  # noqa: BLE001
+                _LOG.exception("the SMEMA outputs could not be withdrawn on shutdown")
         dispatcher.close(wait=False)

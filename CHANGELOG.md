@@ -4,6 +4,8 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+- **The SMEMA outputs are watched without any command:** every second (`HYDRA_UMC_OPENPNP_SMEMA_WATCH_S`, `0` turns it off) the service reconciles the outputs with the cell and the machine and withdraws any whose condition has stopped being true, publishing the new `smema` state; both outputs are also withdrawn when the service stops. A status query no longer counts as a claim that the fixture is full: it uses the last claim a requester made.
+
 
 ## [0.2.6]
 
