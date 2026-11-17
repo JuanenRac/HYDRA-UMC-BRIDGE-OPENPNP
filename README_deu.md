@@ -60,7 +60,7 @@ Jede Zeile ist ein Teil dieses Repositorys, und die Ampel sagt, wie weit er heut
 | Sicherheit | 🟡 | Zugriffskontrolle, Eingabegrenzen oder Signaturen sind umgesetzt und auf einem Rechner getestet; niemand außerhalb des Projekts hat sie geprüft |
 | Bereitstellung | 🟠 | Als Release veröffentlicht; die Installation auf einem frischen Rechner ist dokumentiert, aber nicht vermerkt |
 | Betrieb | 🟠 | Es schreibt Logs; einen Metrik- oder Gesundheits-Endpunkt hat es noch nicht |
-| Stopp und Sicherheit | 🟠 | Der Stoppweg und seine Grenzen sind umgesetzt und gegen Simulatoren getestet; sie liefen nie an einer echten Maschine, und dies ist kein zertifiziertes Sicherheitssystem |
+| Stopp und Sicherheit | 🔴 | Der Stoppbefehl ist vorhanden, aber noch verbindet ihn nichts mit der Anlage oder ihrer Statusquelle; der Stopp muss von einem anderen Teil des Systems kommen |
 | Geräteprotokoll | 🟠 | Spricht das Protokoll seines Geräts; nur gegen Attrappen und Simulatoren geprüft, nie gegen die echte Maschine |
 | Dokumentation | 🟢 | README in acht Sprachen, bei jeder Änderung gegen das Manifest geprüft |
 

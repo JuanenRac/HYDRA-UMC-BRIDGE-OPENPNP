@@ -60,7 +60,7 @@ Cada línea es una parte de este repositorio y la luz dice hasta dónde llega ho
 | Seguridad | 🟡 | El control de acceso, los límites de entrada o las firmas están implementados y probados en un ordenador; nadie ajeno al proyecto los ha revisado |
 | Despliegue | 🟠 | Publicado como release; instalarlo en un equipo limpio está documentado pero no consta |
 | Operación | 🟠 | Escribe registros; todavía no tiene punto de métricas ni de salud |
-| Parada y seguridad | 🟠 | El camino de parada y sus límites están implementados y probados con simuladores; nunca han funcionado en una máquina real, y esto no es un sistema de seguridad certificado |
+| Parada y seguridad | 🔴 | La orden de parada existe, pero todavía nada la conecta con el equipo ni con su fuente de estado; la parada debe venir de otra parte del sistema |
 | Protocolo del equipo | 🟠 | Habla el protocolo de su equipo; comprobado solo con dobles de prueba y simuladores, nunca con la máquina real |
 | Documentación | 🟢 | README en ocho idiomas, comprobado contra el manifiesto en cada cambio |
 

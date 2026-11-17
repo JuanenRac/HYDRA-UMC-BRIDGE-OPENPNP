@@ -60,7 +60,7 @@ Each line is one part of this repository and the light says how far it is today.
 | Security | 🟡 | Access control, input limits or signatures are implemented and tested on a computer; nobody outside the project has reviewed them |
 | Deployment | 🟠 | Published as a release; installing it on a clean machine is documented but not recorded |
 | Operation | 🟠 | It writes logs; it has no metrics or health endpoint yet |
-| Stop and safety | 🟠 | The stop path and its limits are implemented and tested against simulators; they have never run on a real machine, and this is not a certified safety system |
+| Stop and safety | 🔴 | The stop command exists, but nothing connects it to the equipment or to its source of status yet; a stop has to come from another part of the system |
 | Equipment protocol | 🟠 | Speaks the protocol of its equipment; checked against fakes and simulators only, never against the real machine |
 | Documentation | 🟢 | README in eight languages, checked against the manifest on every change |
 

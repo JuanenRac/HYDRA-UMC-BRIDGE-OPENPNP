@@ -60,7 +60,7 @@ Ogni riga è una parte di questo repository e il semaforo dice a che punto è og
 | Sicurezza | 🟡 | Il controllo degli accessi, i limiti d'ingresso o le firme sono implementati e provati su un computer; nessuno al di fuori del progetto li ha rivisti |
 | Distribuzione | 🟠 | Pubblicato come release; l'installazione su una macchina pulita è documentata ma non registrata |
 | Esercizio | 🟠 | Scrive log; non ha ancora un endpoint di metriche o di stato |
-| Arresto e sicurezza | 🟠 | Il percorso di arresto e i suoi limiti sono implementati e provati con simulatori; non hanno mai funzionato su una macchina reale e questo non è un sistema di sicurezza certificato |
+| Arresto e sicurezza | 🔴 | Il comando di arresto esiste, ma nulla lo collega ancora all'apparecchiatura o alla sua fonte di stato; l'arresto deve arrivare da un'altra parte del sistema |
 | Protocollo dell'apparecchiatura | 🟠 | Parla il protocollo della sua apparecchiatura; verificato solo con simulatori e controfigure, mai con la macchina reale |
 | Documentazione | 🟢 | README in otto lingue, verificato rispetto al manifesto a ogni modifica |
 

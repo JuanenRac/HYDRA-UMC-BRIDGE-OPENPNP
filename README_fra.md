@@ -60,7 +60,7 @@ Chaque ligne est une partie de ce dépôt et le feu dit où elle en est aujourd'
 | Sécurité | 🟡 | Le contrôle d'accès, les limites d'entrée ou les signatures sont implémentés et testés sur un ordinateur ; personne hors du projet ne les a relus |
 | Déploiement | 🟠 | Publié comme release ; l'installation sur une machine propre est documentée mais non consignée |
 | Exploitation | 🟠 | Il écrit des journaux ; il n'a pas encore de point de métriques ni de santé |
-| Arrêt et sécurité | 🟠 | Le chemin d'arrêt et ses limites sont implémentés et testés avec des simulateurs ; ils n'ont jamais fonctionné sur une vraie machine, et ce n'est pas un système de sécurité certifié |
+| Arrêt et sécurité | 🔴 | La commande d'arrêt existe, mais rien ne la relie encore à l'équipement ni à sa source d'état ; l'arrêt doit venir d'une autre partie du système |
 | Protocole de l'équipement | 🟠 | Parle le protocole de son équipement ; vérifié seulement avec des doublures et des simulateurs, jamais avec la vraie machine |
 | Documentation | 🟢 | README en huit langues, vérifié par rapport au manifeste à chaque modification |
 
