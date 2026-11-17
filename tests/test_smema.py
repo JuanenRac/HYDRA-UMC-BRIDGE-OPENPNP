@@ -267,6 +267,54 @@ class MqttSmemaTests(unittest.TestCase):
         self.assertFalse(self.upstream.output_level)
         self.assertFalse(self.downstream.output_level)
 
+    def test_a_status_query_keeps_what_the_last_requester_claimed(self):
+        bridge = self.build(with_source=True)
+        message(bridge, "cmd/smema_ready", {"ready": True, "fixture_empty": True})
+        self.assertTrue(self.upstream.output_level)
+        (_, state, _), = message(bridge, "cmd/smema_status")
+        self.assertTrue(state["machine_ready_asserted"], "asking for the status is not a claim that the fixture is full")
+        self.assertTrue(self.upstream.output_level)
+
+    def test_a_command_without_a_claim_is_still_read_literally(self):
+        bridge = self.build()
+        message(bridge, "cmd/smema_ready", {"ready": True, "fixture_empty": True})
+        (_, result, _), _ = message(bridge, "cmd/smema_ready", {"ready": True})
+        self.assertFalse(result["allowed"], "a request that does not say the fixture is empty does not get ready")
+
+    def test_the_watch_takes_an_output_down_without_any_command(self):
+        bridge = self.build()
+        message(bridge, "cmd/smema_ready", {"ready": True, "fixture_empty": True})
+        message(bridge, "cmd/smema_offer", {"available": True, "board_staged": True})
+        self.assertEqual(len(bridge.supervise()), 1, "the first round publishes the state it sees")
+        self.assertEqual(bridge.supervise(), [], "and nothing changed since")
+        self.cell[0] = CellState.SAFE_STOP
+        published = bridge.supervise()
+        self.assertEqual(len(published), 1)
+        state = json.loads(published[0].payload)
+        self.assertFalse(state["machine_ready_asserted"] or state["board_available_asserted"])
+        self.assertFalse(self.upstream.output_level)
+        self.assertFalse(self.downstream.output_level)
+        self.assertEqual(bridge.supervise(), [], "the same state is not published twice")
+
+    def test_a_cell_without_smema_has_nothing_to_watch(self):
+        bridge = OpenPnpMqttBridge(lambda: READY)
+        self.assertEqual(bridge.supervise(), [])
+
+    def test_withdraw_takes_both_outputs_down(self):
+        bridge = self.build()
+        message(bridge, "cmd/smema_ready", {"ready": True, "fixture_empty": True})
+        message(bridge, "cmd/smema_offer", {"available": True, "board_staged": True})
+        bridge.withdraw_smema()
+        self.assertFalse(self.upstream.output_level)
+        self.assertFalse(self.downstream.output_level)
+
+    def test_the_interval_of_the_watch(self):
+        from hydra_umc_bridge_openpnp.mqtt_transport import smema_watch_seconds
+
+        name = "HYDRA_UMC_OPENPNP_SMEMA_WATCH_S"
+        self.assertEqual([smema_watch_seconds({name: v}) for v in ("", "0", "0.25", "2", "-1", "nan", "inf", "abc")], [1.0, 0.0, 0.25, 2.0, 1.0, 1.0, 1.0, 1.0])
+        self.assertEqual(smema_watch_seconds({}), 1.0)
+
     def test_a_sensor_decides_when_there_is_one_and_the_message_is_ignored(self):
         bridge = self.build(fixture_empty=lambda: False, board_staged=lambda: False)
         (_, ready, _), _ = message(bridge, "cmd/smema_ready", {"ready": True, "fixture_empty": True})
