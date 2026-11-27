@@ -4,7 +4,7 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
-- **The bridge can be run as a service:** `python -m hydra_umc_bridge_openpnp` reads one TOML file (broker, state of the cell, state file of OpenPnP, SMEMA lines, idempotency store), refuses unknown keys and `--check` validates it without opening anything. An example file and systemd unit are in `deploy/`. The bridge still only simulates a job. Tests added; not tried on a machine.
+- **The bridge can be run as a service:** `python -m hydra_umc_bridge_openpnp` reads one TOML file (broker, state of the cell, state file of OpenPnP, SMEMA lines, idempotency store), refuses unknown keys and `--check` validates it without opening anything. An example file and systemd unit are in `docs/deploy/`. The bridge still only simulates a job. Tests added; not tried on a machine.
 
 ## [0.2.7] - Signed global stop release and settings that survive a restart
 

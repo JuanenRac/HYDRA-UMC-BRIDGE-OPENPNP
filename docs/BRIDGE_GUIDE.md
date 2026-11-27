@@ -36,7 +36,7 @@ OpenPnP has no RPC API. What it has is event scripts: a file named after an even
 
 `python -m hydra_umc_bridge_openpnp --config FILE` (default `/etc/hydra-umc-bridge-openpnp/bridge-openpnp.toml`, or the file named by
 `HYDRA_UMC_BRIDGE_OPENPNP_CONFIG`) mounts the bridge on an MQTT broker; `--check` only reads the file. The example is
-`deploy/bridge-openpnp.example.toml` and `deploy/hydra-umc-bridge-openpnp.service` is an example systemd unit that no installer places yet.
+`docs/deploy/bridge-openpnp.example.toml` and `docs/deploy/hydra-umc-bridge-openpnp.service` is an example systemd unit that no installer places yet.
 Unknown keys are refused; the cell is `INHIBITED` unless `[cell_state]` says otherwise, and a state file that is missing or stale is
 `SAFE_STOP`. The MQTT user, password and TLS come from `HYDRA_MQTT_*`, and the other switches of the bridge keep their environment variables.
 Not tried on a machine.

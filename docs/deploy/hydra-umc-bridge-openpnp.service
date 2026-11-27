@@ -4,7 +4,7 @@
 # GPL-3.0-or-later - see LICENSE
 # =============================================================================
 # The bridge coordinates a pick-and-place cell and only simulates a job; it never moves a machine. The configuration is
-# /etc/hydra-umc-bridge-openpnp/bridge-openpnp.toml (example: deploy/bridge-openpnp.example.toml); the MQTT credentials go in
+# /etc/hydra-umc-bridge-openpnp/bridge-openpnp.toml (example: docs/deploy/bridge-openpnp.example.toml); the MQTT credentials go in
 # /etc/hydra-umc-bridge-openpnp/bridge-openpnp.env (HYDRA_MQTT_USERNAME=..., readable by root only).
 # Not installed by any installer yet, and not tried on a machine.
 [Unit]
