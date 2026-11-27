@@ -2,6 +2,10 @@
 
 All notable changes to this project are documented here.
 
+## [Unreleased]
+
+- **The bridge can be run as a service:** `python -m hydra_umc_bridge_openpnp` reads one TOML file (broker, state of the cell, state file of OpenPnP, SMEMA lines, idempotency store), refuses unknown keys and `--check` validates it without opening anything. An example file and systemd unit are in `deploy/`. The bridge still only simulates a job. Tests added; not tried on a machine.
+
 ## [0.2.7] - Signed global stop release and settings that survive a restart
 
 - **The switches announced by the server survive a restart:** the counter of the last signed settings message and the values it carried are kept in a state file (`HYDRA_UMC_OPENPNP_SETTINGS_STATE_FILE`, or the settings key file with `.state.json` after its name), so a restart neither forgets the replay counter nor comes back less strict: a board code mode stricter than the one of the host is applied again at the start; anything that relaxes the bridge needs a current signed message. A message that arrives expired is now said in the log.
