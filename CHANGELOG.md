@@ -2,7 +2,7 @@
 
 All notable changes to this project are documented here.
 
-## [Unreleased]
+## [0.2.7] - Signed global stop release and settings that survive a restart
 
 - **The switches announced by the server survive a restart:** the counter of the last signed settings message and the values it carried are kept in a state file (`HYDRA_UMC_OPENPNP_SETTINGS_STATE_FILE`, or the settings key file with `.state.json` after its name), so a restart neither forgets the replay counter nor comes back less strict: a board code mode stricter than the one of the host is applied again at the start; anything that relaxes the bridge needs a current signed message. A message that arrives expired is now said in the log.
 - **The SDK is pinned to its 0.7.6 release:** the dependency line of `pyproject.toml` and the workflows name the tag `v0.7.6` instead of a commit. With a key file for the global stop, the shared guard of that release keeps the newest signed announcement it accepted on disk across restarts.
