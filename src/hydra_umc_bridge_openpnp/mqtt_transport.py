@@ -72,7 +72,7 @@ from .board_flow import BoardFlow
 from .handoff import BoardIdentity, SimulatedBoardHandoff, simulate_board_handoff
 from .board_code import CodeCheck, CodeSource, MODE_OFF, board_code_mode_from_environment, check_board_code
 from .observation import OpenPnpObservation
-from .remote_settings import SETTINGS_TOPIC, SettingsVerifier, parse_remote_settings, remote_settings_allowed
+from .remote_settings import SETTINGS_TOPIC, SettingsVerifier, parse_remote_settings, remote_settings_allowed, stricter_board_code
 from .smema import SmemaDecision, SmemaReceiver, SmemaSender
 from .traceability import BoardTraceRecorder
 
@@ -150,6 +150,9 @@ class OpenPnpMqttBridge:
         wanted = remote_settings_allowed() if remote_settings is None else bool(remote_settings)
         self.settings_verifier = (settings_verifier if settings_verifier is not None else SettingsVerifier.from_environment()) if wanted else None
         self.remote_settings = bool(wanted and self.settings_verifier is not None and self.settings_verifier.usable)
+        # a stricter board code mode set by the server before a restart is applied again; a less strict one waits for a current message
+        if self.remote_settings and self.settings_verifier is not None and code_source is not None:
+            self._code_mode = stricter_board_code(self._code_mode, self.settings_verifier.remembered.get("boardCode"))
         if wanted and not self.remote_settings:
             _LOG.warning("remote settings are allowed but there is no usable key for them: they stay off")
         self._board_flow = BoardFlow()
@@ -344,6 +347,8 @@ class OpenPnpMqttBridge:
             return {}
         mode = found["boardCode"]
         self._code_mode = mode if (mode == MODE_OFF or self._code_source is not None) else MODE_OFF
+        if self.settings_verifier is not None:
+            self.settings_verifier.remember(found)
         _LOG.info("remote settings applied: boardCode=%s", self._code_mode)
         return found
 
