@@ -1,0 +1,34 @@
+# HYDRA-UMC-BRIDGE-OPENPNP - example of /etc/hydra-umc-bridge-openpnp/bridge-openpnp.toml
+# Check it with: python3 -m hydra_umc_bridge_openpnp --config FILE --check
+# A key the service does not know is refused. MQTT credentials go in the environment of the service (HYDRA_MQTT_*), not here.
+
+[mqtt]
+host = "127.0.0.1"
+port = 1883
+client_id = "hydra-umc-bridge-openpnp"
+
+# Where the state of the cell comes from. The default is a fixed INHIBITED (no job is allowed); a file that is missing or older than
+# max_age_seconds is SAFE_STOP.
+[cell_state]
+source = "fixed"
+value = "INHIBITED"
+# source = "file"
+# path = "/run/hydra-umc/cell-state"
+# max_age_seconds = 30.0
+
+# The state file the event scripts of openpnp-scripts/ write. Without this table the bridge believes what the job message says.
+# [state_source]
+# path = "/var/lib/hydra-umc-bridge-openpnp/openpnp-state.json"
+# max_age_seconds = 900.0
+
+# SMEMA lines toward the neighbours of the cell: off (default), simulated or gpio. The real lines were not tried on hardware.
+# [smema]
+# mode = "gpio"
+# chip = "/dev/gpiochip0"
+# receiver_input = 17
+# receiver_output = 27
+# input_active_low = false
+# output_active_low = false
+
+[idempotency]
+path = "/var/lib/hydra-umc-bridge-openpnp/idempotency.json"

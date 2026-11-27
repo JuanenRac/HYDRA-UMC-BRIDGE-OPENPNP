@@ -32,6 +32,15 @@ OpenPnP has no RPC API. What it has is event scripts: a file named after an even
 
 `board_code.py` compares the DataMatrix read from the board with the board the job names, for the phases in which a board arrives (`PREPARE`, `LOAD`). `HYDRA_UMC_OPENPNP_BOARD_CODE` is `off` (default: the job is believed, as before), `advisory` (a code that was read must agree; one that could not be read changes nothing) or `required` (a board with no readable code, or with another code, is refused). A job without a `board_id` takes the single code read; several different codes cannot tell which board it is; anything that is not a stable board identifier is not a code. `VisionNodeCodeSource` gets the codes from HYDRA-UMC-VISION-NODE `POST /read-code` with a frame from a `frame_provider`; a camera or a service that fails is a code that was not read. `ABORT` is never held back by a code.
 
+## Running it as a service
+
+`python -m hydra_umc_bridge_openpnp --config FILE` (default `/etc/hydra-umc-bridge-openpnp/bridge-openpnp.toml`, or the file named by
+`HYDRA_UMC_BRIDGE_OPENPNP_CONFIG`) mounts the bridge on an MQTT broker; `--check` only reads the file. The example is
+`docs/deploy/bridge-openpnp.example.toml` and `docs/deploy/hydra-umc-bridge-openpnp.service` is an example systemd unit that no installer places yet.
+Unknown keys are refused; the cell is `INHIBITED` unless `[cell_state]` says otherwise, and a state file that is missing or stale is
+`SAFE_STOP`. The MQTT user, password and TLS come from `HYDRA_MQTT_*`, and the other switches of the bridge keep their environment variables.
+Not tried on a machine.
+
 ## Compatible software
 
 The current inspected format is the public OpenPnP machine configuration XML. Future live integration targets OpenPnP itself, including installations controlling LumenPnP or other OpenPnP-supported machines, only through their documented interfaces and after identity/safety validation. It is not a generic bridge for arbitrary PnP vendors.
