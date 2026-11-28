@@ -176,12 +176,11 @@ py -3 tools/build_test.py          # Windows
 python3 tools/build_test.py         # Linux, macOS
 ```
 
-Arrancar o serviço (não há um script de consola: o serviço é o `run_forever()` do transporte MQTT, que chama a partir do seu próprio código de arranque):
+Arrancar o serviço com um único ficheiro de configuração (exemplo: `docs/deploy/bridge-openpnp.example.toml`); `--check` apenas o lê e valida. A unidade systemd ao lado não foi experimentada em nenhuma máquina:
 
-```python
-from hydra_umc_bridge_openpnp.mqtt_transport import OpenPnpMqttBridge, run_forever
-bridge = OpenPnpMqttBridge(cell_state=lambda: cell_state)   # state_source, smema_*, trace_recorder are optional
-run_forever(bridge, host="192.168.0.180")                  # serves cmd/# forever
+```bash
+PYTHONPATH=src python3 -m hydra_umc_bridge_openpnp --config bridge-openpnp.toml --check
+PYTHONPATH=src python3 -m hydra_umc_bridge_openpnp --config bridge-openpnp.toml
 ```
 
 O nome de utilizador, a palavra-passe e os ficheiros TLS vêm das variáveis `HYDRA_MQTT_*` (ver Configuração); o código acima não precisa de credenciais próprias.

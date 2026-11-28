@@ -176,12 +176,11 @@ py -3 tools/build_test.py          # Windows
 python3 tools/build_test.py         # Linux, macOS
 ```
 
-启动服务（没有控制台脚本：服务就是 MQTT 传输的 `run_forever()`，由你自己的启动代码调用）：
+用一个配置文件启动服务（示例：`docs/deploy/bridge-openpnp.example.toml`）；`--check` 只读取并校验它。旁边的 systemd 单元尚未在任何机器上试过：
 
-```python
-from hydra_umc_bridge_openpnp.mqtt_transport import OpenPnpMqttBridge, run_forever
-bridge = OpenPnpMqttBridge(cell_state=lambda: cell_state)   # state_source, smema_*, trace_recorder are optional
-run_forever(bridge, host="192.168.0.180")                  # serves cmd/# forever
+```bash
+PYTHONPATH=src python3 -m hydra_umc_bridge_openpnp --config bridge-openpnp.toml --check
+PYTHONPATH=src python3 -m hydra_umc_bridge_openpnp --config bridge-openpnp.toml
 ```
 
 用户名、密码和 TLS 文件来自 `HYDRA_MQTT_*` 变量（见“配置”）；上面的代码本身不需要凭据。
